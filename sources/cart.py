@@ -1,8 +1,9 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QGridLayout,
-    QLabel, QPushButton
+    QLabel, QPushButton, QMessageBox
 )
+from database import retrieve_info
 from utils import play_sfx, finalize_purchase
 
 class CartWindow(QMainWindow):
@@ -46,6 +47,13 @@ class CartWindow(QMainWindow):
         self.setCentralWidget(widget1)
 
     def buy_button_click(self):
+        if not self.cart_list:
+            play_sfx(self, "warning")
+            QMessageBox(QMessageBox.Icon.Warning,"Carrinho vazio",
+            "O carrinho está vazio. Por favor, adicione algum carrinho.",
+            QMessageBox.StandardButton.Ok, self).exec_()
+            self.close()
+            return
         play_sfx(self, "purchase")
         finalize_purchase(self)
         play_sfx(self, "close")
@@ -72,6 +80,21 @@ class CartWindow(QMainWindow):
         self.update_total_label()
 
     def increase_quantity(self, index):
+        car_id = self.cart_list[index]['id']
+        info = retrieve_info(car_id)
+        if info is None:
+            play_sfx(self, "warning")
+            QMessageBox(QMessageBox.Icon.Warning,
+            "Erro", "Não foi possível obter informações do produto.",
+            QMessageBox.StandardButton.Ok, self).exec_()
+            return
+        quantity = info[2]
+        if self.cart_list[index]["quantity"] + 1 > quantity:
+            play_sfx(self, "warning")
+            QMessageBox(QMessageBox.Icon.Warning,
+            "Limite atingido", "Atingiu o limite do carrinho.",
+            QMessageBox.StandardButton.Ok, self).exec_()
+            return
         self.cart_list[index]["quantity"] += 1
         self.update_cart_display()
         self.update_total_label()
@@ -89,7 +112,7 @@ class CartWindow(QMainWindow):
             name_label = QLabel(item['name'])
             name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            price_label = QLabel(str(item['price']))
+            price_label = QLabel(str(item['price'])+"€")
             price_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             quantity_label = QLabel(str(item['quantity']))
