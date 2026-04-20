@@ -1,11 +1,13 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QMainWindow, QWidget, QGridLayout,
-QLabel, QPushButton)
+from PySide6.QtWidgets import (
+    QMainWindow, QWidget, QGridLayout,
+    QLabel, QPushButton
+)
 from utils import play_sfx, finalize_purchase
 
 class CartWindow(QMainWindow):
     def __init__(self, parent=None, cart_list=None, database=None,
-    *args, **kwargs, ):
+                 *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.setWindowTitle("Carrinho")
         self.setGeometry(100, 100, 1280, 720)
@@ -14,11 +16,11 @@ class CartWindow(QMainWindow):
         self.cart_list: list = cart_list
         self.database = database
 
-        widget = QWidget()
-        layout = QGridLayout(widget)
+        widget1 = QWidget()
+        layout1 = QGridLayout(widget1)
 
-        self.list_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
-        self.list_label.setWordWrap(True)
+        self.widget2 = QWidget()
+        self.layout2 = QGridLayout(self.widget2)
 
         self.total_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
         self.total_label.setWordWrap(True)
@@ -29,15 +31,19 @@ class CartWindow(QMainWindow):
         close_button = QPushButton("Fechar")
         close_button.clicked.connect(self.close_button_click)
 
-        layout.addWidget(self.list_label)
-        layout.addWidget(self.total_label)
-        layout.addWidget(buy_button)
-        layout.addWidget(close_button)
+        layout1.addWidget(self.widget2, 1, 0, 1, 5,
+        alignment=Qt.AlignmentFlag.AlignCenter)
+        layout1.addWidget(self.total_label, 2, 0, 1, 5,
+        alignment=Qt.AlignmentFlag.AlignCenter)
+        layout1.addWidget(buy_button, 3, 0, 1, 5,
+        alignment=Qt.AlignmentFlag.AlignCenter)
+        layout1.addWidget(close_button, 4, 0, 1, 5,
+        alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.update_cart_display()
         self.update_total_label()
 
-        self.setCentralWidget(widget)
+        self.setCentralWidget(widget1)
 
     def buy_button_click(self):
         play_sfx(self, "purchase")
@@ -45,23 +51,72 @@ class CartWindow(QMainWindow):
         play_sfx(self, "close")
         self.close()
 
+    def clear_layout(self, layout):
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
     def close_button_click(self):
         play_sfx(self, "close")
         self.close()
 
-    def update_cart_display(self):
-        if not self.cart_list:
-            self.list_label.setText("Carrinho vazio.")
+    def decrease_quantity(self, index):
+        if self.cart_list[index]["quantity"] > 1:
+            self.cart_list[index]["quantity"] -= 1
         else:
-            text = "\n".join(
-                f"{item['name']} — {item['quantity']}x — {item['price']}€/un."
-                for item in self.cart_list
-            )
-            self.list_label.setText(text)
+            self.cart_list.pop(index)
+
+        self.update_cart_display()
+        self.update_total_label()
+
+    def increase_quantity(self, index):
+        self.cart_list[index]["quantity"] += 1
+        self.update_cart_display()
+        self.update_total_label()
+
+    def update_cart_display(self):
+        self.clear_layout(self.layout2)
+
+        if not self.cart_list:
+            empty_label = QLabel("Carrinho vazio.")
+            empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(empty_label, 0, 0)
+            return
+
+        for index, item in enumerate(self.cart_list):
+            name_label = QLabel(item['name'])
+            name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            price_label = QLabel(str(item['price']))
+            price_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            quantity_label = QLabel(str(item['quantity']))
+            quantity_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            decrease_button = QPushButton("-")
+            decrease_button.setFixedWidth(40)
+            decrease_button.clicked.connect(lambda _,
+            i=index: self.decrease_quantity(i))
+
+            increase_button = QPushButton("+")
+            increase_button.setFixedWidth(40)
+            increase_button.clicked.connect(lambda _,
+            i=index: self.increase_quantity(i))
+
+            self.layout2.addWidget(name_label, index, 0,
+            alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(price_label, index, 1,
+            alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(quantity_label, index, 2,
+            alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(decrease_button, index, 3,
+            alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(increase_button, index, 4,
+            alignment=Qt.AlignmentFlag.AlignCenter)
 
     def update_total_label(self):
-        result = 0.0
-        for item in self.cart_list:
-            result += int(item['quantity']) * float(item['price'])
-        text = f"Total: {result:.2f}€"
-        self.total_label.setText(text)
+        result = sum(int(item['quantity']) * float(item['price'])
+        for item in self.cart_list)
+        self.total_label.setText(f"Total: {result:.2f}€")
