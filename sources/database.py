@@ -34,8 +34,8 @@ def load():
 
 def retrieve_info(id: int):
     con, cur = connect()
-    cur.execute('''SELECT name, price, quantity FROM goods WHERE id = ? AND
-    quantity >= ?''', (id, 1))
+    cur.execute('''SELECT name, price, quantity FROM goods
+    WHERE id = ?''', (id,))
     result = cur.fetchone()
     con.close()
     if result is None:

@@ -9,12 +9,21 @@ def add_to_cart(self, id: int):
     if info is None:
         play_sfx(self, "warning")
         QMessageBox(QMessageBox.Icon.Warning,
+        "Erro", "Não foi possível obter informações do produto.",
+        QMessageBox.StandardButton.Ok, self).exec_()
+        return
+    
+    name, price, quantity = info
+
+    if quantity == 0:
+        play_sfx(self, "warning")
+        QMessageBox(QMessageBox.Icon.Warning,
         "Quantidade esgotada",
         """A quantidade disponível do carrinho esgotou.
 Por favor, selecione outro carrinho ou volte mais tarde.""",
         QMessageBox.StandardButton.Ok, self).exec_()
         return
-    name, price, quantity = info
+
     existing = find_in_cart(self, name)
     if existing:
         if existing["quantity"] + 1 > quantity:
@@ -51,6 +60,9 @@ def finalize_purchase(self):
     if hasattr(self, "cart_window") and self.cart_window is not None:
         self.cart_window.update_cart_display()
         self.cart_window.update_total_label()
+    parent = self.parent()
+    if parent is not None:
+        parent.update_car_labels()
     QMessageBox(QMessageBox.Icon.Information,
     "Compra efetuada", "Compra efetuada com sucesso.",
     QMessageBox.StandardButton.Ok, self).exec_()

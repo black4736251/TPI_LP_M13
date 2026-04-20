@@ -2,6 +2,7 @@ from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (QGridLayout, QLabel, QMainWindow,
 QMessageBox, QPushButton, QWidget)
 from utils import add_to_cart, set_image, play_sfx
+from database import retrieve_info
 
 class MainWindow(QMainWindow):
     def __init__(self, cart_list, database, *args, **kwargs):
@@ -34,18 +35,34 @@ class MainWindow(QMainWindow):
         miata_button.clicked.connect(lambda: add_to_cart(self, 2))
 
         nissan_gt_r_button = QPushButton()
-        set_image(nissan_gt_r_button, "nissan_gt-r", 300, 300)
+        set_image(nissan_gt_r_button, "nissan_gt-r",
+        300, 300)
         nissan_gt_r_button.clicked.connect(lambda: add_to_cart(self, 3))
+
+        self.bolide_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
+        self.bolide_label.setWordWrap(True)
+
+        self.miata_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
+        self.miata_label.setWordWrap(True)
+
+        self.nissan_gt_r_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
+        self.nissan_gt_r_label.setWordWrap(True)
 
         close_button = QPushButton("Fechar")
         close_button.clicked.connect(self.close_button_click)
 
-        layout.addWidget(greeting_label, 0, 0, 1, 3, Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(greeting_label, 0, 0, 1, 3,
+        Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(cart_button, 0, 2, Qt.AlignmentFlag.AlignRight)
         layout.addWidget(bolide_button, 1, 0)
+        layout.addWidget(self.bolide_label, 2, 0)
         layout.addWidget(miata_button, 1, 1)
+        layout.addWidget(self.miata_label, 2, 1)
         layout.addWidget(nissan_gt_r_button, 1, 2)
-        layout.addWidget(close_button, 2, 0, 1, 3)
+        layout.addWidget(self.nissan_gt_r_label, 2, 2)
+        layout.addWidget(close_button, 3, 0, 1, 3)
+
+        self.update_car_labels()
 
         self.setCentralWidget(widget)
 
@@ -72,3 +89,19 @@ Por favor, selecione pelo menos um carrinho.""",
         self.cart_window.show()
         self.cart_window.raise_()
         self.cart_window.activateWindow()
+
+    def update_car_labels(self):
+        labels = [
+            self.bolide_label,
+            self.miata_label,
+            self.nissan_gt_r_label
+        ]
+        
+        for car_id, label in enumerate(labels, start=1):
+            info = retrieve_info(car_id)
+            if info is None:
+                return
+            name, price, quantity = info
+            text = f'''Nome: {name}\nPreço: {price:.2f}€/un.
+Quantidade disponível: {quantity}'''
+            label.setText(text)
