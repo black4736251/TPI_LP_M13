@@ -1,3 +1,4 @@
+import csv, datetime ,os
 from database import retrieve_info, reduce_quantity
 from PySide6.QtCore import QSize, QUrl
 from PySide6.QtGui import QIcon
@@ -54,8 +55,37 @@ Por favor, selecione outro carrinho ou volte mais tarde.""",
         self.cart_window.update_cart_display()
         self.cart_window.update_total_label()
 
+def create_csv(self):
+    path = "miscellaneous/sales.csv"
+    path_exists = os.path.isfile(path)
+    date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    try:
+        with open(path, 'a', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=['Nome',
+            "Preço","Quantidade","Total","Data"])
+            if not path_exists or os.path.getsize(path) == 0:
+                writer.writeheader()
+            for item in self.cart_list:
+                total = item['quantity']* item['price']
+                writer.writerow({
+                    "Nome": item["name"],
+                    "Preço": item["price"],
+                    "Quantidade": item["quantity"],
+                    "Total": f"{total:.2f}",
+                    "Data": date})
+    except Exception as e:
+        play_sfx(self, "warning")
+        QMessageBox(QMessageBox.Icon.Warning, "Erro escrita",
+        f"Erro ao criar/guardar o relatório das vendas.\n{e}",
+        QMessageBox.StandardButton.Ok, self).exec_()
+    play_sfx(self, "information")
+    QMessageBox(QMessageBox.Icon.Information, "Relatório criado/guardado",
+    "O relatório foi criado/guardado com sucesso.",
+    QMessageBox.StandardButton.Ok,self).exec_()
+
 def finalize_purchase(self):
     reduce_quantity(self)
+    create_csv(self)
     self.cart_list.clear()
     if hasattr(self, "cart_window") and self.cart_window is not None:
         self.cart_window.update_cart_display()

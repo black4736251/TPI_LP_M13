@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QLabel, QPushButton, QMessageBox
 )
 from database import retrieve_info
-from utils import play_sfx, finalize_purchase
+from utils import finalize_purchase, play_sfx 
 
 class CartWindow(QMainWindow):
     def __init__(self, parent=None, cart_list=None, database=None,
@@ -23,7 +23,8 @@ class CartWindow(QMainWindow):
         self.widget2 = QWidget()
         self.layout2 = QGridLayout(self.widget2)
 
-        self.total_label = QLabel(alignment=Qt.AlignmentFlag.AlignCenter)
+        self.total_label = QLabel(
+        alignment=Qt.AlignmentFlag.AlignCenter)
         self.total_label.setWordWrap(True)
 
         buy_button = QPushButton("Concluír compra")
@@ -140,6 +141,7 @@ class CartWindow(QMainWindow):
             alignment=Qt.AlignmentFlag.AlignCenter)
 
     def update_total_label(self):
-        result = sum(int(item['quantity']) * float(item['price'])
+        result = sum(int(item['quantity']) *
+        float(item['price'])
         for item in self.cart_list)
         self.total_label.setText(f"Total: {result:.2f}€")
