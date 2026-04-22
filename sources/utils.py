@@ -1,9 +1,12 @@
-import csv, datetime ,os
+import csv
+import datetime
+import os
 from database import retrieve_info, reduce_quantity
 from PySide6.QtCore import QSize, QUrl
 from PySide6.QtGui import QIcon
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import QMessageBox
+
 
 def add_to_cart(self, id: int):
     info = retrieve_info(id)
@@ -55,6 +58,7 @@ Por favor, selecione outro carrinho ou volte mais tarde.""",
         self.cart_window.update_cart_display()
         self.cart_window.update_total_label()
 
+
 def create_csv(self):
     path = "miscellaneous/sales.csv"
     path_exists = os.path.isfile(path)
@@ -83,6 +87,7 @@ def create_csv(self):
     "O relatório foi criado/guardado com sucesso.",
     QMessageBox.StandardButton.Ok,self).exec_()
 
+
 def finalize_purchase(self):
     reduce_quantity(self)
     create_csv(self)
@@ -97,11 +102,13 @@ def finalize_purchase(self):
     "Compra efetuada", "Compra efetuada com sucesso.",
     QMessageBox.StandardButton.Ok, self).exec_()
 
+
 def find_in_cart(self, name):
     for item in self.cart_list:
         if item["name"] == name:
             return item
     return None
+
 
 def play_sfx(self, sfx_name: str):
     sfx_name = "sounds/" + f"{sfx_name}" + ".mp3"
@@ -111,6 +118,7 @@ def play_sfx(self, sfx_name: str):
     self.player.setSource(QUrl.fromLocalFile(f"{sfx_name}"))
     self.audio_out.setVolume(1)
     self.player.play()
+
 
 def set_image(self, img_name: str, w: int, h:int):
     img_name = "images/" + f"{img_name}" + ".png"

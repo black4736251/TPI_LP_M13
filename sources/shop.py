@@ -1,12 +1,16 @@
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import (QGridLayout, QLabel, QMainWindow,
-QMessageBox, QPushButton, QWidget)
+from PySide6.QtWidgets import (
+    QGridLayout, QLabel, QMainWindow,
+    QMessageBox, QPushButton, QWidget
+)
 from utils import add_to_cart, set_image, play_sfx
 from database import retrieve_info
 
-class MainWindow(QMainWindow):
-    def __init__(self, cart_list, database, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+
+class ShopWindow(QMainWindow):
+    def __init__(self, parent=None, cart_list=None, database=None,
+    *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self.setWindowTitle("Loja de carrinhos")
         self.setGeometry(100, 100, 1280, 720)
 
@@ -14,7 +18,7 @@ class MainWindow(QMainWindow):
         self.cart_window = None
         self.database = database
 
-        play_sfx(self,"start")
+        play_sfx(self,"shop")
 
         widget = QWidget()
         layout = QGridLayout(widget)
@@ -63,20 +67,21 @@ class MainWindow(QMainWindow):
         layout.addWidget(close_button, 3, 0, 1, 3)
 
         self.update_car_labels()
-
         self.setCentralWidget(widget)
+
 
     def close_button_click(self):
         play_sfx(self, "close")
         QTimer.singleShot(450, self.close)
+
 
     def open_cart_window(self):
         if not self.cart_list:
             play_sfx(self, "warning")
             QMessageBox(QMessageBox.Icon.Warning,
             "Carrinho vazio",
-            """O carrinho está vazio.
-Por favor, selecione pelo menos um carrinho.""",
+            "O carrinho está vazio. Por favor, selecione pelo menos"
+            "um carrinho.",
             QMessageBox.StandardButton.Ok, self).exec_()
             return
         if self.cart_window is None:
@@ -90,6 +95,7 @@ Por favor, selecione pelo menos um carrinho.""",
         self.cart_window.raise_()
         self.cart_window.activateWindow()
 
+
     def update_car_labels(self):
         labels = [
             self.bolide_label,
@@ -102,6 +108,6 @@ Por favor, selecione pelo menos um carrinho.""",
             if info is None:
                 return
             name, price, quantity = info
-            text = f'''Nome: {name}\nPreço: {price:.2f}€/un.
-Quantidade disponível: {quantity}'''
+            text = (f"Nome: {name}\nPreço: {price:.2f}€/un.\n"
+            f"Quantidade disponível: {quantity}")
             label.setText(text)

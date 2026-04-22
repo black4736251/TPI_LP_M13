@@ -6,11 +6,12 @@ from PySide6.QtWidgets import (
 from database import retrieve_info
 from utils import finalize_purchase, play_sfx 
 
+
 class CartWindow(QMainWindow):
     def __init__(self, parent=None, cart_list=None, database=None,
                  *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.setWindowTitle("Carrinho")
+        self.setWindowTitle("Carrinho de compras")
         self.setGeometry(100, 100, 1280, 720)
 
         assert cart_list is not None, '"cart_list" tem de ser uma lista.'
@@ -28,10 +29,10 @@ class CartWindow(QMainWindow):
         self.total_label.setWordWrap(True)
 
         buy_button = QPushButton("Concluír compra")
-        buy_button.clicked.connect(self.buy_button_click)
+        buy_button.clicked.connect(self.confirm_purchase)
 
         close_button = QPushButton("Fechar")
-        close_button.clicked.connect(self.close_button_click)
+        close_button.clicked.connect(self.close_window)
 
         layout1.addWidget(self.widget2, 1, 0, 1, 5,
         alignment=Qt.AlignmentFlag.AlignCenter)
@@ -47,7 +48,8 @@ class CartWindow(QMainWindow):
 
         self.setCentralWidget(widget1)
 
-    def buy_button_click(self):
+
+    def confirm_purchase(self):
         if not self.cart_list:
             play_sfx(self, "warning")
             QMessageBox(QMessageBox.Icon.Warning,"Carrinho vazio",
@@ -60,6 +62,7 @@ class CartWindow(QMainWindow):
         play_sfx(self, "close")
         self.close()
 
+
     def clear_layout(self, layout):
         while layout.count():
             item = layout.takeAt(0)
@@ -67,9 +70,11 @@ class CartWindow(QMainWindow):
             if widget is not None:
                 widget.deleteLater()
 
-    def close_button_click(self):
+
+    def close_window(self):
         play_sfx(self, "close")
         self.close()
+
 
     def decrease_quantity(self, index):
         if self.cart_list[index]["quantity"] > 1:
@@ -79,6 +84,7 @@ class CartWindow(QMainWindow):
 
         self.update_cart_display()
         self.update_total_label()
+
 
     def increase_quantity(self, index):
         car_id = self.cart_list[index]['id']
@@ -99,6 +105,7 @@ class CartWindow(QMainWindow):
         self.cart_list[index]["quantity"] += 1
         self.update_cart_display()
         self.update_total_label()
+
 
     def update_cart_display(self):
         self.clear_layout(self.layout2)
@@ -139,6 +146,7 @@ class CartWindow(QMainWindow):
             alignment=Qt.AlignmentFlag.AlignCenter)
             self.layout2.addWidget(increase_button, index, 4,
             alignment=Qt.AlignmentFlag.AlignCenter)
+
 
     def update_total_label(self):
         result = sum(int(item['quantity']) *
