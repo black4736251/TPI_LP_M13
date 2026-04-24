@@ -59,7 +59,7 @@ Por favor, selecione outro carrinho ou volte mais tarde.""",
         self.cart_window.update_total_label()
 
 
-def create_csv(self):
+def create_csv(self, cart_list):
     path = "miscellaneous/sales.csv"
     path_exists = os.path.isfile(path)
     date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -88,9 +88,9 @@ def create_csv(self):
     QMessageBox.StandardButton.Ok,self).exec_()
 
 
-def finalize_purchase(self):
-    reduce_quantity(self)
-    create_csv(self)
+def finalize_purchase(self, cart_list):
+    reduce_quantity(self, cart_list)
+    create_csv(self, cart_list)
     self.cart_list.clear()
     if hasattr(self, "cart_window") and self.cart_window is not None:
         self.cart_window.update_cart_display()
@@ -98,6 +98,7 @@ def finalize_purchase(self):
     parent = self.parent()
     if parent is not None:
         parent.update_car_labels()
+    play_sfx(self, "purchase")
     QMessageBox(QMessageBox.Icon.Information,
     "Compra efetuada", "Compra efetuada com sucesso.",
     QMessageBox.StandardButton.Ok, self).exec_()

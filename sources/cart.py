@@ -57,8 +57,7 @@ class CartWindow(QMainWindow):
             QMessageBox.StandardButton.Ok, self).exec_()
             self.close()
             return
-        play_sfx(self, "purchase")
-        finalize_purchase(self)
+        finalize_purchase(self, self.cart_list)
         play_sfx(self, "close")
         self.close()
 

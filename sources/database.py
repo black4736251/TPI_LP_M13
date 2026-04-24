@@ -134,10 +134,10 @@ def load():
         return cur.fetchall()
 
 
-def reduce_quantity(cart_list):
+def reduce_quantity(self, cart_list):
     with connect() as con:
         cur = con.cursor()
-        for item in cart_list:
+        for item in self.cart_list:
             cur.execute("""
                 UPDATE goods
                 SET quantity = quantity - ?
