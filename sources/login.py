@@ -13,7 +13,7 @@ class LoginWindow(QMainWindow):
     def __init__(self, cart_list, database, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setWindowTitle("Iniciar sessão")
-        self.setGeometry(100, 100, 1280, 720)
+        self.setGeometry(250, 50, 900, 700)
 
         self.cart_list = cart_list
         self.shop_window = None
@@ -105,8 +105,6 @@ class LoginWindow(QMainWindow):
                     from stock import StockWindow
                     self.stock_window = StockWindow(self,
                     self.cart_list, self.database)
-                else:
-                    pass
                 play_sfx(self, "click")
                 self.stock_window.show()
                 self.stock_window.raise_()

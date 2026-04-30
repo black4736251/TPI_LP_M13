@@ -16,8 +16,10 @@ def add_to_cart(self, id: int):
         "Erro", "Não foi possível obter informações do produto.",
         QMessageBox.StandardButton.Ok, self).exec_()
         return
-    
-    name, price, quantity = info
+
+    name = info["name"]
+    price = info["price"]
+    quantity = info["quantity"]
 
     if quantity == 0:
         play_sfx(self, "warning")
@@ -89,7 +91,7 @@ def create_csv(self, cart_list):
 
 
 def finalize_purchase(self, cart_list):
-    reduce_quantity(self, cart_list)
+    reduce_quantity(self)
     create_csv(self, cart_list)
     self.cart_list.clear()
     if hasattr(self, "cart_window") and self.cart_window is not None:

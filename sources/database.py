@@ -130,11 +130,15 @@ def get_user(name: str):
 def load():
     with connect() as con:
         cur = con.cursor()
-        cur.execute("SELECT * FROM goods")
-        return cur.fetchall()
+        cur.execute("SELECT id, name, price, quantity FROM goods")
+        rows = cur.fetchall()
+    return [
+        {"id": r[0], "name": r[1], "price": r[2], "quantity": r[3]}
+        for r in rows
+    ]
 
 
-def reduce_quantity(self, cart_list):
+def reduce_quantity(self):
     with connect() as con:
         cur = con.cursor()
         for item in self.cart_list:
@@ -148,9 +152,11 @@ def reduce_quantity(self, cart_list):
 def retrieve_info(id: int):
     with connect() as con:
         cur = con.cursor()
-        cur.execute("""
-            SELECT name, price, quantity
-            FROM goods
-            WHERE id = ?
-        """, (id,))
-        return cur.fetchone()
+        cur.execute(
+            "SELECT id, name, price, quantity FROM goods WHERE id = ?",
+            (id,),
+        )
+        r = cur.fetchone()
+    if r is None:
+        return None
+    return {"id": r[0], "name": r[1], "price": r[2], "quantity": r[3]}

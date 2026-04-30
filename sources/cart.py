@@ -12,7 +12,7 @@ class CartWindow(QMainWindow):
                  *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.setWindowTitle("Carrinho de compras")
-        self.setGeometry(100, 100, 1280, 720)
+        self.setGeometry(250, 50, 900, 700)
 
         assert cart_list is not None, '"cart_list" tem de ser uma lista.'
         self.cart_list: list = cart_list
@@ -94,7 +94,7 @@ class CartWindow(QMainWindow):
             "Erro", "Não foi possível obter informações do produto.",
             QMessageBox.StandardButton.Ok, self).exec_()
             return
-        quantity = info[2]
+        quantity = info['quantity']
         if self.cart_list[index]["quantity"] + 1 > quantity:
             play_sfx(self, "warning")
             QMessageBox(QMessageBox.Icon.Warning,
@@ -106,7 +106,7 @@ class CartWindow(QMainWindow):
         self.update_total_label()
 
 
-    def update_cart_display(self):
+    def update_cart_display(self) -> None:
         self.clear_layout(self.layout2)
 
         if not self.cart_list:

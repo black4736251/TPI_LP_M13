@@ -12,9 +12,9 @@ class ShopWindow(QMainWindow):
     *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.setWindowTitle("Loja de carrinhos")
-        self.setGeometry(100, 100, 1280, 720)
+        self.setGeometry(250, 50, 900, 700)
 
-        self.cart_list = cart_list
+        self.cart_list = cart_list or []
         self.cart_window = None
         self.database = database
 
@@ -96,18 +96,46 @@ class ShopWindow(QMainWindow):
         self.cart_window.activateWindow()
 
 
+    def increase_quantity(self, index):
+        if not self.cart_list:
+            return
+        car_id = self.cart_list[index]['id']
+        info = retrieve_info(car_id)
+        if info is None:
+            play_sfx(self, "warning")
+            QMessageBox(QMessageBox.Icon.Warning,
+                "Erro", "Não foi possível obter informações do produto.",
+                QMessageBox.StandardButton.Ok, self).exec_()
+            return
+        quantity = info["quantity"]
+        if self.cart_list[index]["quantity"] + 1 > quantity:
+            play_sfx(self, "warning")
+            QMessageBox(QMessageBox.Icon.Warning,
+                "Limite atingido", "Atingiu o limite do carrinho.",
+                QMessageBox.StandardButton.Ok, self).exec_()
+            return
+        self.cart_list[index]["quantity"] += 1
+        if self.cart_window is not None:
+            self.cart_window.update_cart_display()
+            self.cart_window.update_total_label()
+
     def update_car_labels(self):
-        labels = [
-            self.bolide_label,
-            self.miata_label,
-            self.nissan_gt_r_label
-        ]
-        
-        for car_id, label in enumerate(labels, start=1):
+        car_ids = {
+            1: self.bolide_label,
+            2: self.miata_label,
+            3: self.nissan_gt_r_label
+        }
+
+        for car_id, label in car_ids.items():
             info = retrieve_info(car_id)
             if info is None:
-                return
-            name, price, quantity = info
-            text = (f"Nome: {name}\nPreço: {price:.2f}€/un.\n"
-            f"Quantidade disponível: {quantity}")
-            label.setText(text)
+                label.setText("Erro ao carregar informações.")
+                continue
+
+            name = info["name"]
+            price = info["price"]
+            quantity = info["quantity"]
+
+            label.setText(
+                f"{name}\nPreço: {price:.2f}€\nStock: {quantity}"
+            )
