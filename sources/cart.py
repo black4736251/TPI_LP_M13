@@ -1,7 +1,8 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QGridLayout,
-    QLabel, QPushButton, QMessageBox
+    QLabel, QPushButton, QMessageBox,
+    QApplication
 )
 from sources.database import retrieve_info
 from sources.utils import finalize_purchase, play_sfx 
@@ -75,33 +76,58 @@ class CartWindow(QMainWindow):
         _ = self.close()
 
 
+    def _show_message(self, icon, title, text):
+        _ = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, self).exec_()
+
+
     def decrease_quantity(self, index):
-        if self.cart_list[index]["quantity"] > 1:
-            self.cart_list[index]["quantity"] -= 1
+        mods = QApplication.keyboardModifiers()
+        if mods & Qt.KeyboardModifier.ShiftModifier:
+            dec = 10
+        elif mods & Qt.KeyboardModifier.ControlModifier:
+            dec = 5
+        else:
+            dec = 1
+
+        current = self.cart_list[index]["quantity"]
+        new_qty = current - dec
+        if new_qty > 0:
+            self.cart_list[index]["quantity"] = new_qty
         else:
             self.cart_list.pop(index)
 
+        play_sfx(self, "information")
         self.update_cart_display()
         self.update_total_label()
 
 
     def increase_quantity(self, index):
+        mods = QApplication.keyboardModifiers()
+        if mods & Qt.KeyboardModifier.ShiftModifier:
+            add = 10
+        elif mods & Qt.KeyboardModifier.ControlModifier:
+            add = 5
+        else:
+            add = 1
+
         car_id = self.cart_list[index]['id']
         info = retrieve_info(car_id)
         if info is None:
             play_sfx(self, "warning")
-            _ = QMessageBox(QMessageBox.Icon.Warning,
-            "Erro", "Não foi possível obter informações do produto.",
-            QMessageBox.StandardButton.Ok, self).exec_()
+            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
             return
-        quantity = info['quantity']
-        if self.cart_list[index]["quantity"] + 1 > quantity:
+
+        stock = info['quantity']
+        current = self.cart_list[index]["quantity"]
+        if current + add > stock:
+            available = stock - current
             play_sfx(self, "warning")
-            _ = QMessageBox(QMessageBox.Icon.Warning,
-            "Limite atingido", "Atingiu o limite do carrinho.",
-            QMessageBox.StandardButton.Ok, self).exec_()
+            self._show_message(QMessageBox.Icon.Warning, "Limite atingido",
+                            f"Não é possível adicionar {add} carrinho(s). Stock disponível: {available}.")
             return
-        self.cart_list[index]["quantity"] += 1
+
+        self.cart_list[index]["quantity"] = current + add
+        play_sfx(self, "information")
         self.update_cart_display()
         self.update_total_label()
 

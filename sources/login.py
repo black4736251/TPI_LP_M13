@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QMessageBox, QPushButton,
     QWidget
 )
-from sources.database import check_login, get_user
+from sources.database import check_login, get_user, load
 from sources.utils import play_sfx
 
 
@@ -103,8 +103,11 @@ class LoginWindow(QMainWindow):
             if role == "admin":
                 if self.stock_window is None:
                     from sources.stock import StockWindow
-                    self.stock_window = StockWindow(self,
-                    self.cart_list, self.database)
+                    self.stock_window = StockWindow(self, self.cart_list, self.database)
+                    self.stock_window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+                    self.stock_window.destroyed.connect(self._on_stock_closed)
+                self.stock_window.update_total_quantities(load())
+                self.hide()
                 play_sfx(self, "click")
                 self.stock_window.show()
                 self.stock_window.raise_()
@@ -112,10 +115,13 @@ class LoginWindow(QMainWindow):
             else:
                 if self.shop_window is None:
                     from sources.shop import ShopWindow
-                    self.shop_window = ShopWindow(self,
-                    self.cart_list, self.database)
+                    self.shop_window = ShopWindow(self, self.cart_list, self.database)
+                    self.shop_window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+                    self.shop_window.destroyed.connect(self._on_shop_closed)
                 else:
+                    # Window exists → safe to update
                     self.shop_window.update_car_labels()
+                self.hide()
                 play_sfx(self, "click")
                 self.shop_window.show()
                 self.shop_window.raise_()
@@ -133,3 +139,14 @@ class LoginWindow(QMainWindow):
     def exit_program(self):
         play_sfx(self, "close")
         QTimer.singleShot(450, self.close)
+
+
+    def _on_stock_closed(self):
+        self.stock_window = None
+        self.show()
+
+    
+    def _on_shop_closed(self):
+        self.cart_list.clear()
+        self.shop_window = None
+        self.show()

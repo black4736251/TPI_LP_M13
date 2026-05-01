@@ -88,8 +88,11 @@ class ShopWindow(QMainWindow):
             from sources.cart import CartWindow
             self.cart_window = CartWindow(self, self.cart_list,
             self.database)
+            self.cart_window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+            self.cart_window.destroyed.connect(self._on_cart_closed)
         else:
             self.cart_window.update_cart_display()
+        self.cart_window.update_cart_display()
         play_sfx(self, "click")
         self.cart_window.show()
         self.cart_window.raise_()
@@ -119,6 +122,7 @@ class ShopWindow(QMainWindow):
             self.cart_window.update_cart_display()
             self.cart_window.update_total_label()
 
+
     def update_car_labels(self):
         car_ids = {
             1: self.bolide_label,
@@ -139,3 +143,8 @@ class ShopWindow(QMainWindow):
             label.setText(
                 f"{name}\nPreço: {price:.2f}€\nStock: {quantity}"
             )
+
+
+    def _on_cart_closed(self):
+        self.cart_window = None
+        self.show()

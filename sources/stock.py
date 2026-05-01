@@ -1,10 +1,14 @@
+import os
+import platform
+import subprocess
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QGridLayout, QLabel, QMainWindow,
-    QPushButton, QWidget, QMessageBox
+    QPushButton, QWidget, QMessageBox,
+    QApplication
 )
-from sources.utils import play_sfx
-from sources.database import retrieve_info
+from sources.utils import play_sfx, is_empty_file
+from sources.database import retrieve_info, load
 
 
 class StockWindow(QMainWindow):
@@ -26,13 +30,16 @@ class StockWindow(QMainWindow):
         self.widget2: QWidget = QWidget()
         self.layout2: QGridLayout = QGridLayout(self.widget2)
 
+        purchase_history_button = QPushButton("Ver histórico de compras")
+        _ = purchase_history_button.clicked.connect(self.open_purchase_history)
         close_button = QPushButton("Fechar")
         _ = close_button.clicked.connect(self.close_window)
 
         self.update_total_quantities(self.database)
 
         layout1.addWidget(self.widget2,0,0,1,1,Qt.AlignmentFlag.AlignCenter)
-        layout1.addWidget(close_button,1,0,1,1,Qt.AlignmentFlag.AlignCenter)
+        layout1.addWidget(purchase_history_button,1,0,1,1,Qt.AlignmentFlag.AlignCenter)
+        layout1.addWidget(close_button,2,0,1,1,Qt.AlignmentFlag.AlignCenter)
 
         self.setCentralWidget(widget1)
 
@@ -50,8 +57,10 @@ class StockWindow(QMainWindow):
                 widget.deleteLater()
 
 
-    def update_total_quantities(self, database):
+    def update_total_quantities(self, _database=None):
         self.clear_layout(self.layout2)
+        self.database = load()
+        database = self.database
 
         for row, item in enumerate(database):
             name_label = QLabel(item['name'])
@@ -82,44 +91,51 @@ class StockWindow(QMainWindow):
 
 
     def increase_quantity(self, item_id):
+        add = self.key_add_sub_amount()
         info = retrieve_info(item_id)
         if info is None:
             play_sfx(self, "warning")
-            _ = QMessageBox(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.",
-                QMessageBox.StandardButton.Ok, self).exec_()
+            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
             return
-        new_q = info['quantity'] + 1
+        # current stock from DB/info
+        current = info["quantity"]
+        new_q = current + add
         self._set_db_quantity(item_id, new_q)
         play_sfx(self, "information")
-        _ = QMessageBox(QMessageBox.Icon.Information, "Quantidade aumentada",
-        "A quantidade do carrinho foi aumentada com sucesso.",
-        QMessageBox.StandardButton.Ok, self).exec_()
-        # Refresh UI using current self.database
         self.update_total_quantities(self.database)
 
 
     def decrease_quantity(self, item_id):
+        dec = self.key_add_sub_amount()
         info = retrieve_info(item_id)
         if info is None:
             play_sfx(self, "warning")
-            _ = QMessageBox(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.",
-            QMessageBox.StandardButton.Ok, self).exec_()
+            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
             return
-        if info['quantity'] <= 0:
+        current = info["quantity"]
+        if current - dec < 0:
             play_sfx(self, "warning")
-            _ = QMessageBox(QMessageBox.Icon.Warning, "Erro",
-            "Não é possível transformar a quantidade em um número negativo.",
-            QMessageBox.StandardButton.Ok, self).exec_()
+            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não é possível diminuir abaixo de zero.")
             return
-        new_q = info['quantity'] - 1
+        new_q = current - dec
         self._set_db_quantity(item_id, new_q)
         play_sfx(self, "information")
-        _ = QMessageBox(QMessageBox.Icon.Information, "Sucesso",
-        "Quantidade do carrinho foi diminuída com sucesso.",
-        QMessageBox.StandardButton.Ok, self).exec_()
         self.update_total_quantities(self.database)
 
-    
+
+    def _show_message(self, icon, title, text):
+        _ = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, self).exec_()
+
+
+    def key_add_sub_amount(self):
+        mods = QApplication.keyboardModifiers()
+        if mods & Qt.KeyboardModifier.ShiftModifier:
+            return 10
+        if mods & Qt.KeyboardModifier.ControlModifier:
+            return 5
+        return 1
+
+
     def _set_db_quantity(self, item_id: int, new_quantity: int):
         from sources.database import connect
         if new_quantity < 0:
@@ -132,3 +148,20 @@ class StockWindow(QMainWindow):
             if it['id'] == item_id:
                 it['quantity'] = new_quantity
                 break
+
+
+    def open_purchase_history(self):
+        system = platform.system()
+        PATH = "reports/sales.csv"
+
+        if is_empty_file(PATH):
+            self._show_message(QMessageBox.Icon.Warning, "Relatório vazio", ("O relatório encontra-se vazio."
+            " Espere que alguma compra seja efetuada."))
+            return
+
+        if system == "Windows":
+            os.startfile(PATH)
+        elif system == "Darwin":
+            _ = subprocess.run(['open', PATH])
+        else:
+            _ = subprocess.run(['xdg-open', PATH])

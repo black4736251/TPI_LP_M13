@@ -6,57 +6,65 @@ from sources.database import retrieve_info, reduce_quantity
 from PySide6.QtCore import QSize, QUrl, Qt
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QApplication, QMessageBox
 
 
 def add_to_cart(self, id: int):
+    mods = QApplication.keyboardModifiers()
+
+
+    def show_message(icon, title, text):
+        _ = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, self).exec_()
+
     info = retrieve_info(id)
     if info is None:
         play_sfx(self, "warning")
-        _ = QMessageBox(QMessageBox.Icon.Warning,
-        "Erro", "Não foi possível obter informações do produto.",
-        QMessageBox.StandardButton.Ok, self).exec_()
+        show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
         return
 
     name = info["name"]
     price = info["price"]
-    quantity = info["quantity"]
+    stock = info["quantity"]  # Available stock
 
-    if quantity == 0:
+    if stock == 0:
         play_sfx(self, "warning")
-        _ = QMessageBox(QMessageBox.Icon.Warning,
-        "Quantidade esgotada",
-        ("A quantidade disponível do carrinho esgotou."
-        " Por favor, selecione outro carrinho ou volte mais tarde."),
-        QMessageBox.StandardButton.Ok, self).exec_()
+        show_message(QMessageBox.Icon.Warning, "Quantidade esgotada",
+                     "A quantidade disponível do carrinho esgotou. Por favor, selecione outro carrinho ou volte mais tarde.")
         return
+
+    # Determine how many to add depending on modifiers
+    if mods & Qt.KeyboardModifier.ShiftModifier:
+        add_amount = 10
+    elif mods & Qt.KeyboardModifier.ControlModifier:
+        add_amount = 5
+    else:
+        add_amount = 1
 
     existing = find_in_cart(self, name)
     if existing:
-        if existing["quantity"] + 1 > quantity:
+        new_qty = existing["quantity"] + add_amount
+        if new_qty > stock:
             play_sfx(self, "warning")
-            _ = QMessageBox(QMessageBox.Icon.Warning,
-            "Máximo antigido",
-            ("Atingiu a quantidade máxima disponível do carrinho."
-            "Por favor, selecione outro carrinho ou volte mais tarde."),
-            QMessageBox.StandardButton.Ok, self).exec_()
+            show_message(QMessageBox.Icon.Warning, "Máximo atingido",
+                         f"Não é possível adicionar {add_amount} carrinho(s). Stock disponível: {stock - existing['quantity']}.")
             return
-        existing["quantity"] += 1
+        existing["quantity"] = new_qty
         play_sfx(self, "information")
-        _ = QMessageBox(QMessageBox.Icon.Information,
-        "Carrinho adicionado", "+1 carrinho adicionado com sucesso.",
-        QMessageBox.StandardButton.Ok, self).exec_()
+        show_message(QMessageBox.Icon.Information, "Carrinho atualizado",
+                     f"+{add_amount} carrinho(s) adicionado(s) com sucesso.")
     else:
+        # If adding for the first time, cap to stock
+        to_add = min(add_amount, stock)
         self.cart_list.append({
             "id": id,
             "name": name,
             "price": price,
-            "quantity": 1
+            "quantity": to_add
         })
         play_sfx(self, "information")
-        _ = QMessageBox(QMessageBox.Icon.Information,
-        "Carrinho adicionado", "O carrinho foi adicionado com sucesso.",
-        QMessageBox.StandardButton.Ok, self).exec_()
+        show_message(QMessageBox.Icon.Information, "Carrinho adicionado",
+                     f"{to_add} carrinho(s) adicionado(s) ao carrinho com sucesso.")
+
     if hasattr(self, "cart_window") and self.cart_window is not None:
         self.cart_window.update_cart_display()
         self.cart_window.update_total_label()
@@ -98,10 +106,6 @@ def create_csv(self, cart_list):
                     "Quantidade": item['quantity'],
                     "Total": total_str,
                     "Data": date})
-        play_sfx(self, "information")
-        _ = QMessageBox(QMessageBox.Icon.Information, "Relatório criado/guardado",
-        "O relatório foi criado/guardado com sucesso.",
-        QMessageBox.StandardButton.Ok,self).exec_()
     except Exception as e:
         play_sfx(self, "warning")
         _ = QMessageBox(QMessageBox.Icon.Warning, "Erro escrita",
@@ -152,3 +156,7 @@ def set_image(self, img_name: str, w: int, h: int):
     self.setIconSize(QSize(w, h))
     self.setFixedSize(w, h)
     self.setStyleSheet("border: none; padding: 0;")
+
+
+def is_empty_file(PATH):
+    return os.path.isfile(PATH) and os.path.getsize(PATH) == 0
