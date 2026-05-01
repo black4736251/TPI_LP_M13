@@ -1,4 +1,3 @@
-from database import check_login, get_user
 from PySide6.QtCore import QSize, QTimer, Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -6,7 +5,8 @@ from PySide6.QtWidgets import (
     QMainWindow, QMessageBox, QPushButton,
     QWidget
 )
-from utils import play_sfx
+from sources.database import check_login, get_user
+from sources.utils import play_sfx
 
 
 class LoginWindow(QMainWindow):
@@ -26,26 +26,26 @@ class LoginWindow(QMainWindow):
         layout = QGridLayout(widget)
 
         username_label = QLabel("Nome de utilizador")
-        self.username_input = QLineEdit()
+        self.username_input: QLineEdit = QLineEdit()
         self.username_input.setPlaceholderText("Introduza aqui...")
         self.username_input.setFixedWidth(150)
-        self.username_input.returnPressed.connect(self.verify_login)
+        _ = self.username_input.returnPressed.connect(self.verify_login)
         password_label = QLabel("Palavra-passe")
-        self.password_input = QLineEdit()
+        self.password_input: QLineEdit = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setPlaceholderText("Introduza aqui...")
         self.password_input.setFixedWidth(150)
-        self.password_input.returnPressed.connect(self.verify_login)
-        self.password_visible = False
+        _ = self.password_input.returnPressed.connect(self.verify_login)
+        self.password_visible: bool = False
         password_mode_button = QPushButton()
-        password_mode_button.clicked.connect(self.change_password_mode)
+        _ = password_mode_button.clicked.connect(self.change_password_mode)
         password_mode_icon = QIcon("images/eye.png")
         password_mode_button.setIcon(password_mode_icon)
         password_mode_button.setIconSize(QSize(32,32))
         signin_button = QPushButton("Iniciar sessão")
-        signin_button.clicked.connect(self.verify_login)
+        _ = signin_button.clicked.connect(self.verify_login)
         exit_button = QPushButton("Sair")
-        exit_button.clicked.connect(self.exit_program)
+        _ = exit_button.clicked.connect(self.exit_program)
 
         layout.addWidget(username_label,0,0,1,2,
         alignment=Qt.AlignmentFlag.AlignCenter)
@@ -88,21 +88,21 @@ class LoginWindow(QMainWindow):
         if not username or not password:
             self.clear_inputs()
             play_sfx(self, "warning")
-            QMessageBox(QMessageBox.Icon.Warning, "Campo(s) vazio(s)",
+            _ = QMessageBox(QMessageBox.Icon.Warning, "Campo(s) vazio(s)",
             "O nome de utilizador e/ou a palavra-passe está(ão) vazio(a)(os).",
             QMessageBox.StandardButton.Ok, self).exec_()
             return
         if check_login(username, password):
             self.clear_inputs()
             play_sfx(self, "information")
-            QMessageBox(QMessageBox.Icon.Information, "Sessão iniciada",
+            _ = QMessageBox(QMessageBox.Icon.Information, "Sessão iniciada",
             "Sessão iniciada com sucesso.", QMessageBox.StandardButton.Ok,
             self).exec_()
             user = get_user(username)
             role = user[3]
             if role == "admin":
                 if self.stock_window is None:
-                    from stock import StockWindow
+                    from sources.stock import StockWindow
                     self.stock_window = StockWindow(self,
                     self.cart_list, self.database)
                 play_sfx(self, "click")
@@ -111,7 +111,7 @@ class LoginWindow(QMainWindow):
                 self.stock_window.activateWindow()
             else:
                 if self.shop_window is None:
-                    from shop import ShopWindow
+                    from sources.shop import ShopWindow
                     self.shop_window = ShopWindow(self,
                     self.cart_list, self.database)
                 else:
@@ -123,9 +123,9 @@ class LoginWindow(QMainWindow):
         else:
             self.clear_inputs()
             play_sfx(self, "warning")
-            QMessageBox(QMessageBox.Icon.Warning, "Campo(s) inválido(s)",
-            "O nome de utilizador e/ou a palavra-passe é(estão)"
-            "inválido(a)(os).",
+            _ = QMessageBox(QMessageBox.Icon.Warning, "Campo(s) inválido(s)",
+            ("O nome de utilizador e/ou a palavra-passe é(estão)"
+            "inválido(a)(os)."),
             QMessageBox.StandardButton.Ok, self).exec_()
             return
 

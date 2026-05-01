@@ -69,7 +69,7 @@ def create():
     with connect() as con:
         cur = con.cursor()
 
-        cur.execute("""
+        _ = cur.execute("""
             CREATE TABLE IF NOT EXISTS goods (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,
@@ -78,7 +78,7 @@ def create():
             )
         """)
 
-        cur.execute("""
+        _ = cur.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT UNIQUE,
@@ -87,7 +87,7 @@ def create():
             )
         """)
 
-        cur.executemany("""
+        _ = cur.executemany("""
             INSERT INTO goods (name, price, quantity)
             VALUES (?, ?, ?)
         """, [
@@ -101,7 +101,7 @@ def create():
             ("administrador", hash_password("A12B34c56!"), "admin")
         ]
 
-        cur.executemany("""
+        _ = cur.executemany("""
             INSERT INTO users (name, password, role)
             VALUES (?, ?, ?)
         """, users)
@@ -122,7 +122,7 @@ def check_login(name: str, password: str) -> bool:
 def get_user(name: str):
     with connect() as con:
         cur = con.cursor()
-        cur.execute("""SELECT id, name, password, role
+        _ = cur.execute("""SELECT id, name, password, role
         FROM users WHERE name = ?""", (name,))
         return cur.fetchone()
 
@@ -130,7 +130,7 @@ def get_user(name: str):
 def load():
     with connect() as con:
         cur = con.cursor()
-        cur.execute("SELECT id, name, price, quantity FROM goods")
+        _ = cur.execute("SELECT id, name, price, quantity FROM goods")
         rows = cur.fetchall()
     return [
         {"id": r[0], "name": r[1], "price": r[2], "quantity": r[3]}
@@ -138,13 +138,14 @@ def load():
     ]
 
 
-def reduce_quantity(self):
+def reduce_quantity(cart_list):
     with connect() as con:
         cur = con.cursor()
-        for item in self.cart_list:
-            cur.execute("""
+        for item in cart_list:
+            # Ensure quantity will not go negative
+            _ = cur.execute("""
                 UPDATE goods
-                SET quantity = quantity - ?
+                SET quantity = MAX(quantity - ?, 0)
                 WHERE id = ?
             """, (item["quantity"], item["id"]))
 
@@ -152,7 +153,7 @@ def reduce_quantity(self):
 def retrieve_info(id: int):
     with connect() as con:
         cur = con.cursor()
-        cur.execute(
+        _ = cur.execute(
             "SELECT id, name, price, quantity FROM goods WHERE id = ?",
             (id,),
         )

@@ -1,11 +1,10 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QGridLayout, QLabel, QMainWindow,
-    QPushButton, QWidget, QLineEdit,
-    QMessageBox
+    QPushButton, QWidget, QMessageBox
 )
-from utils import play_sfx
-from database import retrieve_info
+from sources.utils import play_sfx
+from sources.database import retrieve_info
 
 
 class StockWindow(QMainWindow):
@@ -24,13 +23,13 @@ class StockWindow(QMainWindow):
         widget1 = QWidget()
         layout1 = QGridLayout(widget1)
 
-        self.widget2 = QWidget()
-        self.layout2 = QGridLayout(self.widget2)
+        self.widget2: QWidget = QWidget()
+        self.layout2: QGridLayout = QGridLayout(self.widget2)
 
         close_button = QPushButton("Fechar")
-        close_button.clicked.connect(self.close_window)
+        _ = close_button.clicked.connect(self.close_window)
 
-        self.update_total_quantities(database)
+        self.update_total_quantities(self.database)
 
         layout1.addWidget(self.widget2,0,0,1,1,Qt.AlignmentFlag.AlignCenter)
         layout1.addWidget(close_button,1,0,1,1,Qt.AlignmentFlag.AlignCenter)
@@ -40,7 +39,7 @@ class StockWindow(QMainWindow):
 
     def close_window(self):
         play_sfx(self, "close")
-        self.close()
+        _ = self.close()
 
 
     def clear_layout(self, layout):
@@ -54,11 +53,11 @@ class StockWindow(QMainWindow):
     def update_total_quantities(self, database):
         self.clear_layout(self.layout2)
 
-        for index, item in enumerate(database):
+        for row, item in enumerate(database):
             name_label = QLabel(item['name'])
             name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            price_label = QLabel(str(item['price'])+"€")
+            price_label = QLabel(str(item['price']) + "€")
             price_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             if item['quantity'] == 0:
@@ -69,57 +68,67 @@ class StockWindow(QMainWindow):
 
             decrease_button = QPushButton("-")
             decrease_button.setFixedWidth(40)
-            decrease_button.clicked.connect(lambda _,
-            i=index: self.decrease_quantity(i))
+            _ = decrease_button.clicked.connect(lambda _, item_id=item['id']: self.decrease_quantity(item_id))
 
             increase_button = QPushButton("+")
             increase_button.setFixedWidth(40)
-            increase_button.clicked.connect(lambda _,
-            i=index: self.increase_quantity(i))
+            _ = increase_button.clicked.connect(lambda _, item_id=item['id']: self.increase_quantity(item_id))
 
-            self.layout2.addWidget(name_label, index, 0,
-            alignment=Qt.AlignmentFlag.AlignCenter)
-            self.layout2.addWidget(price_label, index, 1,
-            alignment=Qt.AlignmentFlag.AlignCenter)
-            self.layout2.addWidget(quantity_label, index, 2,
-            alignment=Qt.AlignmentFlag.AlignCenter)
-            self.layout2.addWidget(decrease_button, index, 3,
-            alignment=Qt.AlignmentFlag.AlignCenter)
-            self.layout2.addWidget(increase_button, index, 4,
-            alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(name_label, row, 0, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(price_label, row, 1, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(quantity_label, row, 2, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(decrease_button, row, 3, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.layout2.addWidget(increase_button, row, 4, alignment=Qt.AlignmentFlag.AlignCenter)
 
 
-    def increase_quantity(self, i):
-        car_id = self.database[i]['id']
-        info = retrieve_info(car_id)
+    def increase_quantity(self, item_id):
+        info = retrieve_info(item_id)
         if info is None:
             play_sfx(self, "warning")
-            QMessageBox(QMessageBox.Icon.Warning,
-            "Erro", "Não foi possível obter informações do carrinho.",
+            _ = QMessageBox(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.",
+                QMessageBox.StandardButton.Ok, self).exec_()
+            return
+        new_q = info['quantity'] + 1
+        self._set_db_quantity(item_id, new_q)
+        play_sfx(self, "information")
+        _ = QMessageBox(QMessageBox.Icon.Information, "Quantidade aumentada",
+        "A quantidade do carrinho foi aumentada com sucesso.",
+        QMessageBox.StandardButton.Ok, self).exec_()
+        # Refresh UI using current self.database
+        self.update_total_quantities(self.database)
+
+
+    def decrease_quantity(self, item_id):
+        info = retrieve_info(item_id)
+        if info is None:
+            play_sfx(self, "warning")
+            _ = QMessageBox(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.",
             QMessageBox.StandardButton.Ok, self).exec_()
             return
-        self.database[i]["quantity"] += 1
-        play_sfx(self, "information")
-        QMessageBox(QMessageBox.Icon.Information,
-            "Quantidade aumentada", ("A quantidade do carrinho foi"
-            "aumentada com sucesso."),
-            QMessageBox.StandardButton.Ok, self).exec_()
-        self.update_total_quantities(self.database)
-
-
-    def decrease_quantity(self, i):
-        if self.database[i]["quantity"] > 1:
-            self.database[i]["quantity"] -= 1
-            play_sfx(self, "information")
-            QMessageBox(QMessageBox.Icon.Information,
-            "Sucesso", "Quantidade do carrinho aumentada com sucesso.",
-            QMessageBox.StandardButton.Ok, self).exec_()
-        else:
+        if info['quantity'] <= 0:
             play_sfx(self, "warning")
-            QMessageBox(QMessageBox.Icon.Warning,
-            "Erro", ("Não é possível transformar a quantidade"
-            "em um número negativo."),
+            _ = QMessageBox(QMessageBox.Icon.Warning, "Erro",
+            "Não é possível transformar a quantidade em um número negativo.",
             QMessageBox.StandardButton.Ok, self).exec_()
-
-
+            return
+        new_q = info['quantity'] - 1
+        self._set_db_quantity(item_id, new_q)
+        play_sfx(self, "information")
+        _ = QMessageBox(QMessageBox.Icon.Information, "Sucesso",
+        "Quantidade do carrinho foi diminuída com sucesso.",
+        QMessageBox.StandardButton.Ok, self).exec_()
         self.update_total_quantities(self.database)
+
+    
+    def _set_db_quantity(self, item_id: int, new_quantity: int):
+        from sources.database import connect
+        if new_quantity < 0:
+            new_quantity = 0
+        with connect() as con:
+            cur = con.cursor()
+            _ = cur.execute("UPDATE goods SET quantity = ? WHERE id = ?", (new_quantity, item_id))
+        # Update in-memory self.database to match DB
+        for it in self.database:
+            if it['id'] == item_id:
+                it['quantity'] = new_quantity
+                break

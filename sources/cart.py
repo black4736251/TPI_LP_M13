@@ -3,8 +3,8 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QGridLayout,
     QLabel, QPushButton, QMessageBox
 )
-from database import retrieve_info
-from utils import finalize_purchase, play_sfx 
+from sources.database import retrieve_info
+from sources.utils import finalize_purchase, play_sfx 
 
 
 class CartWindow(QMainWindow):
@@ -15,24 +15,24 @@ class CartWindow(QMainWindow):
         self.setGeometry(250, 50, 900, 700)
 
         assert cart_list is not None, '"cart_list" tem de ser uma lista.'
-        self.cart_list: list = cart_list
+        self.cart_list = cart_list
         self.database = database
 
         widget1 = QWidget()
         layout1 = QGridLayout(widget1)
 
-        self.widget2 = QWidget()
-        self.layout2 = QGridLayout(self.widget2)
+        self.widget2: QWidget = QWidget()
+        self.layout2: QGridLayout = QGridLayout(self.widget2)
 
-        self.total_label = QLabel(
+        self.total_label: QLabel = QLabel(
         alignment=Qt.AlignmentFlag.AlignCenter)
         self.total_label.setWordWrap(True)
 
         buy_button = QPushButton("Concluír compra")
-        buy_button.clicked.connect(self.confirm_purchase)
+        _ = buy_button.clicked.connect(self.confirm_purchase)
 
         close_button = QPushButton("Fechar")
-        close_button.clicked.connect(self.close_window)
+        _ = close_button.clicked.connect(self.close_window)
 
         layout1.addWidget(self.widget2, 1, 0, 1, 5,
         alignment=Qt.AlignmentFlag.AlignCenter)
@@ -52,14 +52,14 @@ class CartWindow(QMainWindow):
     def confirm_purchase(self):
         if not self.cart_list:
             play_sfx(self, "warning")
-            QMessageBox(QMessageBox.Icon.Warning,"Carrinho vazio",
+            _ = QMessageBox(QMessageBox.Icon.Warning,"Carrinho vazio",
             "O carrinho está vazio. Por favor, adicione algum carrinho.",
             QMessageBox.StandardButton.Ok, self).exec_()
-            self.close()
+            _ = self.close()
             return
         finalize_purchase(self, self.cart_list)
         play_sfx(self, "close")
-        self.close()
+        _ = self.close()
 
 
     def clear_layout(self, layout):
@@ -72,7 +72,7 @@ class CartWindow(QMainWindow):
 
     def close_window(self):
         play_sfx(self, "close")
-        self.close()
+        _ = self.close()
 
 
     def decrease_quantity(self, index):
@@ -90,14 +90,14 @@ class CartWindow(QMainWindow):
         info = retrieve_info(car_id)
         if info is None:
             play_sfx(self, "warning")
-            QMessageBox(QMessageBox.Icon.Warning,
+            _ = QMessageBox(QMessageBox.Icon.Warning,
             "Erro", "Não foi possível obter informações do produto.",
             QMessageBox.StandardButton.Ok, self).exec_()
             return
         quantity = info['quantity']
         if self.cart_list[index]["quantity"] + 1 > quantity:
             play_sfx(self, "warning")
-            QMessageBox(QMessageBox.Icon.Warning,
+            _ = QMessageBox(QMessageBox.Icon.Warning,
             "Limite atingido", "Atingiu o limite do carrinho.",
             QMessageBox.StandardButton.Ok, self).exec_()
             return
@@ -127,12 +127,12 @@ class CartWindow(QMainWindow):
 
             decrease_button = QPushButton("-")
             decrease_button.setFixedWidth(40)
-            decrease_button.clicked.connect(lambda _,
+            _ = decrease_button.clicked.connect(lambda _,
             i=index: self.decrease_quantity(i))
 
             increase_button = QPushButton("+")
             increase_button.setFixedWidth(40)
-            increase_button.clicked.connect(lambda _,
+            _ = increase_button.clicked.connect(lambda _,
             i=index: self.increase_quantity(i))
 
             self.layout2.addWidget(name_label, index, 0,
