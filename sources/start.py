@@ -1,5 +1,7 @@
 import sys
+
 from PySide6.QtWidgets import QApplication
+
 from sources.database import create, load
 from sources.login import LoginWindow
 

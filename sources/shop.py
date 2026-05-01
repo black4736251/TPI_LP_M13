@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (
     QGridLayout, QLabel, QMainWindow,
     QMessageBox, QPushButton, QWidget
 )
+
 from sources.database import retrieve_info
 from sources.utils import add_to_cart, play_sfx, set_image 
 

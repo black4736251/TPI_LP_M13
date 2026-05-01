@@ -4,12 +4,14 @@ import locale
 import os
 import platform
 import subprocess
-from sources.database import reduce_quantity, retrieve_info
-from sources.config import IMAGES_PATH, REPORTS_PATH, SOUNDS_PATH 
+
 from PySide6.QtCore import QSize, Qt, QUrl 
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import QApplication, QMessageBox
+
+from sources.database import reduce_quantity, retrieve_info
+from sources.config import IMAGES_PATH, REPORTS_PATH, SOUNDS_PATH 
 
 
 def add_to_cart(self, id: int):
@@ -33,7 +35,7 @@ def add_to_cart(self, id: int):
     if stock == 0:
         play_sfx(self, "warning")
         show_message(QMessageBox.Icon.Warning, "Quantidade esgotada",
-                     "A quantidade disponível do carrinho esgotou. Por favor, selecione outro carrinho ou volte mais tarde.")
+        "A quantidade disponível do carrinho esgotou. Por favor, selecione outro carrinho ou volte mais tarde.")
         return
 
     # Determine how many to add depending on modifiers
@@ -50,12 +52,12 @@ def add_to_cart(self, id: int):
         if new_qty > stock:
             play_sfx(self, "warning")
             show_message(QMessageBox.Icon.Warning, "Máximo atingido",
-                         f"Não é possível adicionar {add_amount} carrinho(s). Stock disponível: {stock - existing['quantity']}.")
+            f"Não é possível adicionar {add_amount} carrinho(s). Stock disponível: {stock - existing['quantity']}.")
             return
         existing["quantity"] = new_qty
         play_sfx(self, "information")
         show_message(QMessageBox.Icon.Information, "Carrinho atualizado",
-                     f"+{add_amount} carrinho(s) adicionado(s) com sucesso.")
+        f"+{add_amount} carrinho(s) adicionado(s) com sucesso.")
     else:
         # If adding for the first time, cap to stock
         to_add = min(add_amount, stock)
@@ -67,7 +69,7 @@ def add_to_cart(self, id: int):
         })
         play_sfx(self, "information")
         show_message(QMessageBox.Icon.Information, "Carrinho adicionado",
-                     f"{to_add} carrinho(s) adicionado(s) ao carrinho com sucesso.")
+        f"{to_add} carrinho(s) adicionado(s) ao carrinho com sucesso.")
 
     if hasattr(self, "cart_window") and self.cart_window is not None:
         self.cart_window.update_cart_display()

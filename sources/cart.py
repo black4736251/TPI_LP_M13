@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QMessageBox, QPushButton,
     QWidget,
 )
+
 from sources.database import retrieve_info
 from sources.utils import finalize_purchase, play_sfx
 
