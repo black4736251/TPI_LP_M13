@@ -2,8 +2,11 @@ import csv
 import datetime
 import locale
 import os
-from sources.database import retrieve_info, reduce_quantity
-from PySide6.QtCore import QSize, QUrl, Qt
+import platform
+import subprocess
+from sources.database import reduce_quantity, retrieve_info
+from sources.config import IMAGES_PATH, REPORTS_PATH, SOUNDS_PATH 
+from PySide6.QtCore import QSize, Qt, QUrl 
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import QApplication, QMessageBox
@@ -15,6 +18,7 @@ def add_to_cart(self, id: int):
 
     def show_message(icon, title, text):
         _ = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, self).exec_()
+
 
     info = retrieve_info(id)
     if info is None:
@@ -136,8 +140,28 @@ def find_in_cart(self, name):
     return None
 
 
+def is_empty_file(PATH: str):
+    return os.path.isfile(PATH) and os.path.getsize(PATH) == 0
+
+
+def open_purchase_history(self):
+        system = platform.system()
+
+        if is_empty_file(REPORTS_PATH):
+            self._show_message(QMessageBox.Icon.Warning, "Relatório vazio", ("O relatório encontra-se vazio."
+            " Espere que alguma compra seja efetuada."))
+            return
+
+        if system == "Windows":
+            os.startfile(REPORTS_PATH)
+        elif system == "Darwin":
+            _ = subprocess.run(['open', REPORTS_PATH])
+        else:
+            _ = subprocess.run(['xdg-open', REPORTS_PATH])
+
+
 def play_sfx(self, sfx_name: str):
-    sfx_name = "sounds/" + f"{sfx_name}" + ".mp3"
+    sfx_name = f"{SOUNDS_PATH}/{sfx_name}.mp3"
     self.player = QMediaPlayer()
     self.audio_out = QAudioOutput()
     self.player.setAudioOutput(self.audio_out)
@@ -147,7 +171,7 @@ def play_sfx(self, sfx_name: str):
 
 
 def set_image(self, img_name: str, w: int, h: int):
-    path = f"images/{img_name}.png"
+    path = f"{IMAGES_PATH}/{img_name}.png"
     pix = QPixmap(path)
     if pix.isNull():
         return
@@ -156,7 +180,3 @@ def set_image(self, img_name: str, w: int, h: int):
     self.setIconSize(QSize(w, h))
     self.setFixedSize(w, h)
     self.setStyleSheet("border: none; padding: 0;")
-
-
-def is_empty_file(PATH):
-    return os.path.isfile(PATH) and os.path.getsize(PATH) == 0

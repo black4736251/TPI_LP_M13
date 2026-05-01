@@ -1,12 +1,11 @@
-from PySide6.QtCore import QSize, QTimer, Qt
-from PySide6.QtGui import QIcon
+from PySide6.QtCore import Qt, QTimer 
 from PySide6.QtWidgets import (
-    QLabel, QGridLayout, QLineEdit,
+    QGridLayout, QLabel, QLineEdit, 
     QMainWindow, QMessageBox, QPushButton,
     QWidget
 )
 from sources.database import check_login, get_user, load
-from sources.utils import play_sfx
+from sources.utils import play_sfx, set_image
 
 
 class LoginWindow(QMainWindow):
@@ -25,10 +24,11 @@ class LoginWindow(QMainWindow):
         widget = QWidget()
         layout = QGridLayout(widget)
 
-        username_label = QLabel("Nome de utilizador")
+        username_label = QLabel("Utilizador(a)")
         self.username_input: QLineEdit = QLineEdit()
         self.username_input.setPlaceholderText("Introduza aqui...")
         self.username_input.setFixedWidth(150)
+        self.username_input.setFocus()
         _ = self.username_input.returnPressed.connect(self.verify_login)
         password_label = QLabel("Palavra-passe")
         self.password_input: QLineEdit = QLineEdit()
@@ -39,9 +39,7 @@ class LoginWindow(QMainWindow):
         self.password_visible: bool = False
         password_mode_button = QPushButton()
         _ = password_mode_button.clicked.connect(self.change_password_mode)
-        password_mode_icon = QIcon("images/eye.png")
-        password_mode_button.setIcon(password_mode_icon)
-        password_mode_button.setIconSize(QSize(32,32))
+        set_image(password_mode_button, "eye", 50, 50)
         signin_button = QPushButton("Iniciar sessão")
         _ = signin_button.clicked.connect(self.verify_login)
         exit_button = QPushButton("Sair")
@@ -82,6 +80,22 @@ class LoginWindow(QMainWindow):
             self.change_password_mode()
 
 
+    def exit_program(self):
+        play_sfx(self, "close")
+        QTimer.singleShot(450, self.close)
+
+
+    def _on_stock_closed(self):
+        self.stock_window = None
+        self.show()
+
+
+    def _on_shop_closed(self):
+        self.cart_list.clear()
+        self.shop_window = None
+        self.show()
+
+
     def verify_login(self):
         username = self.username_input.text().strip()
         password = self.password_input.text().strip()
@@ -89,7 +103,7 @@ class LoginWindow(QMainWindow):
             self.clear_inputs()
             play_sfx(self, "warning")
             _ = QMessageBox(QMessageBox.Icon.Warning, "Campo(s) vazio(s)",
-            "O nome de utilizador e/ou a palavra-passe está(ão) vazio(a)(os).",
+            "O utilizador(a) e/ou a palavra-passe está(ão) vazio(a)(os).",
             QMessageBox.StandardButton.Ok, self).exec_()
             return
         if check_login(username, password):
@@ -105,7 +119,7 @@ class LoginWindow(QMainWindow):
                     from sources.stock import StockWindow
                     self.stock_window = StockWindow(self, self.cart_list, self.database)
                     self.stock_window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-                    self.stock_window.destroyed.connect(self._on_stock_closed)
+                    _ = self.stock_window.destroyed.connect(self._on_stock_closed)
                 self.stock_window.update_total_quantities(load())
                 self.hide()
                 play_sfx(self, "click")
@@ -117,7 +131,7 @@ class LoginWindow(QMainWindow):
                     from sources.shop import ShopWindow
                     self.shop_window = ShopWindow(self, self.cart_list, self.database)
                     self.shop_window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-                    self.shop_window.destroyed.connect(self._on_shop_closed)
+                    _ = self.shop_window.destroyed.connect(self._on_shop_closed)
                 else:
                     # Window exists → safe to update
                     self.shop_window.update_car_labels()
@@ -130,23 +144,7 @@ class LoginWindow(QMainWindow):
             self.clear_inputs()
             play_sfx(self, "warning")
             _ = QMessageBox(QMessageBox.Icon.Warning, "Campo(s) inválido(s)",
-            ("O nome de utilizador e/ou a palavra-passe é(estão)"
-            "inválido(a)(os)."),
+            ("O(a) utilizador(a) e/ou a palavra-passe é(estão)"
+            "inválido(a)(os)(as)."),
             QMessageBox.StandardButton.Ok, self).exec_()
             return
-
-
-    def exit_program(self):
-        play_sfx(self, "close")
-        QTimer.singleShot(450, self.close)
-
-
-    def _on_stock_closed(self):
-        self.stock_window = None
-        self.show()
-
-    
-    def _on_shop_closed(self):
-        self.cart_list.clear()
-        self.shop_window = None
-        self.show()

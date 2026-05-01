@@ -1,14 +1,11 @@
-import os
-import platform
-import subprocess
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QGridLayout, QLabel, QMainWindow,
-    QPushButton, QWidget, QMessageBox,
-    QApplication
+    QApplication, QGridLayout, QLabel,
+    QMainWindow, QMessageBox, QPushButton,
+    QWidget,
 )
-from sources.utils import play_sfx, is_empty_file
-from sources.database import retrieve_info, load
+from sources.database import load, retrieve_info
+from sources.utils import open_purchase_history, play_sfx 
 
 
 class StockWindow(QMainWindow):
@@ -31,7 +28,7 @@ class StockWindow(QMainWindow):
         self.layout2: QGridLayout = QGridLayout(self.widget2)
 
         purchase_history_button = QPushButton("Ver histórico de compras")
-        _ = purchase_history_button.clicked.connect(self.open_purchase_history)
+        _ = purchase_history_button.clicked.connect(self.see_sales_report)
         close_button = QPushButton("Fechar")
         _ = close_button.clicked.connect(self.close_window)
 
@@ -44,17 +41,81 @@ class StockWindow(QMainWindow):
         self.setCentralWidget(widget1)
 
 
-    def close_window(self):
-        play_sfx(self, "close")
-        _ = self.close()
-
-
     def clear_layout(self, layout):
         while layout.count():
             item = layout.takeAt(0)
             widget = item.widget()
             if widget is not None:
                 widget.deleteLater()
+
+
+    def close_window(self):
+        play_sfx(self, "close")
+        _ = self.close()
+
+
+    def decrease_quantity(self, item_id):
+        dec = self.key_add_sub_amount()
+        info = retrieve_info(item_id)
+        if info is None:
+            play_sfx(self, "warning")
+            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
+            return
+        current = info["quantity"]
+        if current - dec < 0:
+            play_sfx(self, "warning")
+            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não é possível diminuir abaixo de zero.")
+            return
+        new_q = current - dec
+        self._set_db_quantity(item_id, new_q)
+        play_sfx(self, "information")
+        self.update_total_quantities(self.database)
+
+
+    def increase_quantity(self, item_id):
+        add = self.key_add_sub_amount()
+        info = retrieve_info(item_id)
+        if info is None:
+            play_sfx(self, "warning")
+            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
+            return
+        # current stock from DB/info
+        current = info["quantity"]
+        new_q = current + add
+        self._set_db_quantity(item_id, new_q)
+        play_sfx(self, "information")
+        self.update_total_quantities(self.database)
+
+
+    def key_add_sub_amount(self):
+        mods = QApplication.keyboardModifiers()
+        if mods & Qt.KeyboardModifier.ShiftModifier:
+            return 10
+        if mods & Qt.KeyboardModifier.ControlModifier:
+            return 5
+        return 1
+
+
+    def see_sales_report(self):
+        open_purchase_history(self)
+
+
+    def _set_db_quantity(self, item_id: int, new_quantity: int):
+        from sources.database import connect
+        if new_quantity < 0:
+            new_quantity = 0
+        with connect() as con:
+            cur = con.cursor()
+            _ = cur.execute("UPDATE goods SET quantity = ? WHERE id = ?", (new_quantity, item_id))
+        # Update in-memory self.database to match DB
+        for it in self.database:
+            if it['id'] == item_id:
+                it['quantity'] = new_quantity
+                break
+
+
+    def _show_message(self, icon, title, text):
+        _ = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, self).exec_()
 
 
     def update_total_quantities(self, _database=None):
@@ -88,80 +149,3 @@ class StockWindow(QMainWindow):
             self.layout2.addWidget(quantity_label, row, 2, alignment=Qt.AlignmentFlag.AlignCenter)
             self.layout2.addWidget(decrease_button, row, 3, alignment=Qt.AlignmentFlag.AlignCenter)
             self.layout2.addWidget(increase_button, row, 4, alignment=Qt.AlignmentFlag.AlignCenter)
-
-
-    def increase_quantity(self, item_id):
-        add = self.key_add_sub_amount()
-        info = retrieve_info(item_id)
-        if info is None:
-            play_sfx(self, "warning")
-            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
-            return
-        # current stock from DB/info
-        current = info["quantity"]
-        new_q = current + add
-        self._set_db_quantity(item_id, new_q)
-        play_sfx(self, "information")
-        self.update_total_quantities(self.database)
-
-
-    def decrease_quantity(self, item_id):
-        dec = self.key_add_sub_amount()
-        info = retrieve_info(item_id)
-        if info is None:
-            play_sfx(self, "warning")
-            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
-            return
-        current = info["quantity"]
-        if current - dec < 0:
-            play_sfx(self, "warning")
-            self._show_message(QMessageBox.Icon.Warning, "Erro", "Não é possível diminuir abaixo de zero.")
-            return
-        new_q = current - dec
-        self._set_db_quantity(item_id, new_q)
-        play_sfx(self, "information")
-        self.update_total_quantities(self.database)
-
-
-    def _show_message(self, icon, title, text):
-        _ = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, self).exec_()
-
-
-    def key_add_sub_amount(self):
-        mods = QApplication.keyboardModifiers()
-        if mods & Qt.KeyboardModifier.ShiftModifier:
-            return 10
-        if mods & Qt.KeyboardModifier.ControlModifier:
-            return 5
-        return 1
-
-
-    def _set_db_quantity(self, item_id: int, new_quantity: int):
-        from sources.database import connect
-        if new_quantity < 0:
-            new_quantity = 0
-        with connect() as con:
-            cur = con.cursor()
-            _ = cur.execute("UPDATE goods SET quantity = ? WHERE id = ?", (new_quantity, item_id))
-        # Update in-memory self.database to match DB
-        for it in self.database:
-            if it['id'] == item_id:
-                it['quantity'] = new_quantity
-                break
-
-
-    def open_purchase_history(self):
-        system = platform.system()
-        PATH = "reports/sales.csv"
-
-        if is_empty_file(PATH):
-            self._show_message(QMessageBox.Icon.Warning, "Relatório vazio", ("O relatório encontra-se vazio."
-            " Espere que alguma compra seja efetuada."))
-            return
-
-        if system == "Windows":
-            os.startfile(PATH)
-        elif system == "Darwin":
-            _ = subprocess.run(['open', PATH])
-        else:
-            _ = subprocess.run(['xdg-open', PATH])

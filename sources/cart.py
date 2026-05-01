@@ -1,11 +1,11 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QGridLayout,
-    QLabel, QPushButton, QMessageBox,
-    QApplication
+    QApplication, QGridLayout, QLabel,
+    QMainWindow, QMessageBox, QPushButton,
+    QWidget,
 )
 from sources.database import retrieve_info
-from sources.utils import finalize_purchase, play_sfx 
+from sources.utils import finalize_purchase, play_sfx
 
 
 class CartWindow(QMainWindow):
@@ -50,19 +50,6 @@ class CartWindow(QMainWindow):
         self.setCentralWidget(widget1)
 
 
-    def confirm_purchase(self):
-        if not self.cart_list:
-            play_sfx(self, "warning")
-            _ = QMessageBox(QMessageBox.Icon.Warning,"Carrinho vazio",
-            "O carrinho está vazio. Por favor, adicione algum carrinho.",
-            QMessageBox.StandardButton.Ok, self).exec_()
-            _ = self.close()
-            return
-        finalize_purchase(self, self.cart_list)
-        play_sfx(self, "close")
-        _ = self.close()
-
-
     def clear_layout(self, layout):
         while layout.count():
             item = layout.takeAt(0)
@@ -76,8 +63,17 @@ class CartWindow(QMainWindow):
         _ = self.close()
 
 
-    def _show_message(self, icon, title, text):
-        _ = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, self).exec_()
+    def confirm_purchase(self):
+        if not self.cart_list:
+            play_sfx(self, "warning")
+            _ = QMessageBox(QMessageBox.Icon.Warning,"Carrinho vazio",
+            "O carrinho está vazio. Por favor, adicione algum carrinho.",
+            QMessageBox.StandardButton.Ok, self).exec_()
+            _ = self.close()
+            return
+        finalize_purchase(self, self.cart_list)
+        play_sfx(self, "close")
+        _ = self.close()
 
 
     def decrease_quantity(self, index):
@@ -130,6 +126,10 @@ class CartWindow(QMainWindow):
         play_sfx(self, "information")
         self.update_cart_display()
         self.update_total_label()
+
+
+    def _show_message(self, icon, title, text):
+        _ = QMessageBox(icon, title, text, QMessageBox.StandardButton.Ok, self).exec_()
 
 
     def update_cart_display(self) -> None:

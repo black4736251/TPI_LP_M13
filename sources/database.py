@@ -4,15 +4,15 @@ import hmac
 import os
 import sqlite3
 from pathlib import Path
+from sources.config import DB_PATH
 
 
 # -----------------------------
 # CONFIGURATION
 # -----------------------------
-DB_PATH = Path("databases/database.db")
 HASH_NAME = "sha256"
 ITERATIONS = 200_000
-SALT_SIZE = 16  # bytes
+SALT_SIZE = 16 # bytes
 
 
 # -----------------------------
@@ -63,7 +63,7 @@ def connect():
 def create():
     Path("databases").mkdir(exist_ok=True)
 
-    if DB_PATH.exists():
+    if Path(DB_PATH).exists():
         return
 
     with connect() as con:
