@@ -5,13 +5,13 @@ import os
 import platform
 import subprocess
 
-from PySide6.QtCore import QSize, Qt, QUrl 
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QIcon, QPixmap
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from sources.database import reduce_quantity, retrieve_info
-from sources.config import IMAGES_PATH, REPORTS_PATH, SOUNDS_PATH 
+from sources.config import IMAGES_PATH, REPORTS_PATH, SOUNDS_PATH
+from sources.sound_manager import SoundManager
 
 
 def add_to_cart(self, id: int):
@@ -163,13 +163,8 @@ def open_purchase_history(self):
 
 
 def play_sfx(self, sfx_name: str):
-    sfx_name = f"{SOUNDS_PATH}/{sfx_name}.mp3"
-    self.player = QMediaPlayer()
-    self.audio_out = QAudioOutput()
-    self.player.setAudioOutput(self.audio_out)
-    self.player.setSource(QUrl.fromLocalFile(f"{sfx_name}"))
-    self.audio_out.setVolume(1)
-    self.player.play()
+    path = f"{SOUNDS_PATH}/{sfx_name}.mp3"
+    SoundManager().play(path)
 
 
 def set_image(self, img_name: str, w: int, h: int):
