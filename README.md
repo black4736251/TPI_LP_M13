@@ -10,12 +10,17 @@ pip install -r requirements.txt
 ```
 
 2. Iniciar o programa:
+* Com Python:
 ```
 python main.py
 ```
 Ou em alguns sistemas:
 ```
 python3 main.py
+```
+* Binário (linux):
+```
+./builds/main.dist/main.bin
 ```
 
 ## Estrutura do projeto

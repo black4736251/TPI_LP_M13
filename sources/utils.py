@@ -77,10 +77,10 @@ def add_to_cart(self, id: int):
 
 
 def create_csv(self, cart_list):
-    path = "reports/sales.csv"
+    path = REPORTS_PATH
     path_exists = os.path.isfile(path)
     date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    os.makedirs("reports", exist_ok=True)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
 
 
     try:

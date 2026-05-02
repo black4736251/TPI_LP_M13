@@ -6,7 +6,7 @@ import sqlite3
 
 from pathlib import Path
 
-from sources.config import DB_PATH
+from sources.config import BASE_DIR, DB_PATH
 
 
 # -----------------------------
@@ -63,7 +63,7 @@ def connect():
 
 
 def create():
-    Path("databases").mkdir(exist_ok=True)
+    Path(os.path.join(BASE_DIR, "databases")).mkdir(exist_ok=True)
 
     if Path(DB_PATH).exists():
         return
