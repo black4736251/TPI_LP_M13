@@ -264,14 +264,6 @@ Voltar à [página principal](https://github.com/black4736251/TPI_LP_M13)
     ├── config.py
     ├── database.py
     ├── login.py
-    ├── __pycache__
-    │   ├── config.cpython-313.pyc
-    │   ├── database.cpython-313.pyc
-    │   ├── login.cpython-313.pyc
-    │   ├── shop.cpython-313.pyc
-    │   ├── sound_manager.cpython-313.pyc
-    │   ├── start.cpython-313.pyc
-    │   └── utils.cpython-313.pyc
     ├── shop.py
     ├── sound_manager.py
     ├── start.py
