@@ -305,7 +305,7 @@ python3 main.py
   <img src="images/readme/login.png" width="900" height="900" alt="Iniciar sessão">
 </p>
 
-### Loja 🏪
+### Loja de carrinhos 🏪
 <p align="center">
   <img src="images/readme/shop.png" width="900" height="900" alt="Loja de carrinhos">
 </p>
