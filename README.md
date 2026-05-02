@@ -11,7 +11,7 @@
 
 1. Instalar, criar o venv e instalar dependências 🔧:
 ```
-sudo apt install python3-venv
+sudo apt install python3-venv python3-pip
 python3 -m venv venv
 source ~/venv/bin/activate
 pip install -r ~/Transferências/TPI_LP_M13-main/requirements.txt
