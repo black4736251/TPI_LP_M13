@@ -26,7 +26,7 @@ python3 main.py
 ```
 ./builds/main.dist/main.bin
 ```
-**Nota ⚠️:** Evite executar o binário em caminhos com caracteres acentuados no nome. O programa não irá iniciar. Este tem de ser executado obrigatoriamente em um caminho com caracteres normais, por exemplo:
+**Nota ⚠️:** Evite executar o binário em caminhos com caracteres acentuados no nome. O programa não irá iniciar. Este tem que ser executado obrigatoriamente em um caminho com caracteres normais. Por exemplo:
 ```
 ./home/utilizador/Transferências/builds/main.dist/main.bin <- ocorrerá o seguinte erro: Abortado (núcleo despejado) - o programa não será executado normalmente 👎
 ./home/utilizador/builds/main.dist/main.bin <- o programa será executado normalmente 👍
@@ -322,6 +322,6 @@ python3 main.py
 
 ## Segredos do programa 🤫
 
-* Se segurar a tecla **SHIFT** e clicar na imagem do carrinho, no botão **+** ou no botão **-** a quantidade desse carrinho irá ser alterada em **10** unidades. <br />
-* Se segurar a tecla **CTRL** e clicar na imagem do carrinho, no botão **+** ou no botão **-** a quantidade desse carrinho irá ser alterada em **5** unidades. <br />
-* Se só **clicar** na imagem do carrinho, no botão **+** ou no botão **-** a quantidade desse carrinho irá ser alterada em **1** unidade.
+* Se segurar a tecla **SHIFT** e clicar na imagem do carrinho, no botão **+** ou no botão **-**, a quantidade desse carrinho irá ser alterada em **10** unidades. <br />
+* Se segurar a tecla **CTRL** e clicar na imagem do carrinho, no botão **+** ou no botão **-**, a quantidade desse carrinho irá ser alterada em **5** unidades. <br />
+* Se só **clicar** na imagem do carrinho, no botão **+** ou no botão **-**, a quantidade desse carrinho irá ser alterada em **1** unidade.
