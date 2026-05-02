@@ -1,10 +1,10 @@
 # Loja de carrinhos 🏎️
 
-Programa que permite comprar, vender e manipular a quantidade de carrinhos.
-Com uma base de dados que armazena as credenciais encriptadas dos utilizadores e do administrador.
-Também armazena as informações dos carrinhos.
-Cria um relatório de vendas que pode ser visualizado fácilmente.
-Contém efeitos sonoros e imagens dando ao utilizador uma experiência aconchegante.
+* Programa que permite comprar, vender e manipular a quantidade de carrinhos. <br />
+* Com uma base de dados que armazena as credenciais encriptadas dos utilizadores e do administrador. <br />
+* Também armazena as informações dos carrinhos. <br />
+* Cria um relatório de vendas que pode ser visualizado fácilmente. <br />
+* Contém efeitos sonoros e imagens dando ao utilizador uma experiência aconchegante.
 
 ## Como executar ⚙️
 
@@ -322,6 +322,6 @@ python3 main.py
 
 ## Segredos do programa 🤫
 
-Se segurar a tecla **SHIFT** e clicar na imagem do carrinho, no botão **+** ou no botão **-** a quantidade desse carrinho irá ser alterada em **10** unidades.
-Se segurar a tecla **CTRL** e clicar na imagem do carrinho, no botão **+** ou no botão **-** a quantidade desse carrinho irá ser alterada em **5** unidades.
-Se só **clicar** na imagem do carrinho, no botão **+** ou no botão **-** a quantidade desse carrinho irá ser alterada em **1** unidade.
+* Se segurar a tecla **SHIFT** e clicar na imagem do carrinho, no botão **+** ou no botão **-** a quantidade desse carrinho irá ser alterada em **10** unidades. <br />
+* Se segurar a tecla **CTRL** e clicar na imagem do carrinho, no botão **+** ou no botão **-** a quantidade desse carrinho irá ser alterada em **5** unidades. <br />
+* Se só **clicar** na imagem do carrinho, no botão **+** ou no botão **-** a quantidade desse carrinho irá ser alterada em **1** unidade.
