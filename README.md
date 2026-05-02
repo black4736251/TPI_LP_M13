@@ -18,7 +18,7 @@ Ou em alguns sistemas:
 ```
 python3 main.py
 ```
-* Com o binário do Linux:
+* Com o binário para distribuições Linux:
 ```
 ./builds/main.dist/main.bin
 ```
