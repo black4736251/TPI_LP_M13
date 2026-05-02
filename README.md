@@ -10,7 +10,7 @@ pip install -r requirements.txt
 ```
 
 2. Iniciar o programa:
-* Com Python:
+* Com o Python:
 ```
 python main.py
 ```
@@ -18,7 +18,7 @@ Ou em alguns sistemas:
 ```
 python3 main.py
 ```
-* Binário (linux):
+* Com o binário do Linux:
 ```
 ./builds/main.dist/main.bin
 ```
