@@ -1,15 +1,15 @@
-# Loja de carrinhos
+# Loja de carrinhos 🏎️
 
 Programa que permite comprar, vender e manipular a quantidade de carrinhos.
 
-## Como executar
+## Como executar ⚙️
 
-1. Instalar dependências:
+1. Instalar dependências 🔧:
 ```
 pip install -r requirements.txt
 ```
 
-2. Iniciar o programa:
+2. Iniciar o programa ▶️:
 * Com o Python:
 ```
 python main.py
@@ -22,8 +22,13 @@ python3 main.py
 ```
 ./builds/main.dist/main.bin
 ```
+⚠️ **Nota:** Evite executar o binário em caminhos com caracteres acentuados no nome. O programa não irá iniciar. Este tem de ser executado obrigatoriamente em um caminho com caracteres normais, por exemplo:
+```
+./home/utilizador/Transferências/builds/main.dist/main.bin <- ocorrerá o seguinte erro: Abortado (núcleo despejado) - o programa não será executado normalmente 👎
+./home/utilizador/builds/main.dist/main.bin <- o programa será executado normalmente 👍
+```
 
-## Estrutura do projeto
+## Estrutura do projeto 📁
 
 ```
 .
@@ -97,9 +102,9 @@ python3 main.py
 │   │   ├── scons-debug.sh
 │   │   ├── scons-report.txt
 │   │   └── static_src
-│   │       ├── CompiledFunctionType.c -> /home/black/venv/lib/python3.13/site-packages/nuitka/build/static_src/CompiledFunctionType.c
+│   │       ├── CompiledFunctionType.c
 │   │       ├── CompiledFunctionType.o
-│   │       ├── MainProgram.c -> /home/black/venv/lib/python3.13/site-packages/nuitka/build/static_src/MainProgram.c
+│   │       ├── MainProgram.c
 │   │       └── MainProgram.o
 │   └── main.dist
 │       ├── _bz2.so
@@ -289,24 +294,24 @@ python3 main.py
     └── utils.py
 ```
 
-## Capturas de ecrã
+## Capturas de ecrã 📷
 
-### Iniciar sessão
+### Iniciar sessão 🔽
 <p align="center">
   <img src="images/readme/login.png" width="900" height="900" alt="Iniciar sessão">
 </p>
 
-### Loja
+### Loja 🏪
 <p align="center">
   <img src="images/readme/shop.png" width="900" height="900" alt="Loja">
 </p>
 
-### Carrinho de compras
+### Carrinho de compras 🛒
 <p align="center">
   <img src="images/readme/cart.png" width="900" height="900" alt="Carrinho de compras">
 </p>
 
-### Manipular quantidades
+### Manipular quantidades 📦
 <p align="center">
   <img src="images/readme/stock.png" width="900" height="900" alt="Manipular quantidades">
 </p>
