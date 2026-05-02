@@ -18,7 +18,7 @@ pip install -r requirements.txt
 ```
 python main.py
 ```
-Ou em alguns sistemas:
+* Ou em alguns sistemas:
 ```
 python3 main.py
 ```
