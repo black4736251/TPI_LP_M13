@@ -1,6 +1,6 @@
 # Estrutura do projecto 📁
 
-Voltar à [página principal](./)
+Voltar à [página principal](https://github.com/black4736251/TPI_LP_M13)
 
 ```
 .
