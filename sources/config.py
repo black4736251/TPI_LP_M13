@@ -2,11 +2,11 @@ import os
 import sys
 
 def base_dir():
-    if getattr(sys, "frozen", False):
-        # Caminho do binário que o utilizador executou (./builds/main.bin)
+    if getattr(sys, "frozen", False): # Avoids using the /tmp folder on Linux distributions
+        # Binary path that user executed (./builds/main.bin)
         return os.path.dirname(os.path.abspath(sys.argv[0]))
 
-    # Python normal → subir um nível a partir de sources/
+    # Normal in Python → climb one level from sources/
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BASE_DIR = base_dir()
