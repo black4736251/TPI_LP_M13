@@ -1,6 +1,6 @@
 # Estrutura do projecto 📁
 
-Voltar ao [README](README.md)
+Voltar à [página principal](./)
 
 ```
 .
