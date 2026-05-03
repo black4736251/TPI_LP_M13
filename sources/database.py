@@ -1,63 +1,16 @@
-import binascii
-import hashlib
-import hmac
 import os
 import sqlite3
 
 from pathlib import Path
 
 from sources.config import BASE_DIR, DB_PATH
-
-
-# -----------------------------
-# CONFIGURATION
-# -----------------------------
-HASH_NAME = "sha256"
-ITERATIONS = 200_000
-SALT_SIZE = 16 # bytes
-
-
-# -----------------------------
-# PASSWORD HASHING
-# -----------------------------
-def hash_password(password: str) -> str:
-    salt = os.urandom(SALT_SIZE)
-    dk = hashlib.pbkdf2_hmac(
-        HASH_NAME,
-        password.encode("utf-8"),
-        salt,
-        ITERATIONS
-    )
-
-    salt_hex = binascii.hexlify(salt).decode()
-    dk_hex = binascii.hexlify(dk).decode()
-
-    return (
-        f"{HASH_NAME}$"
-        f"{ITERATIONS}$"
-        f"{salt_hex}$"
-        f"{dk_hex}"
-    )
-
-
-def verify_password(stored: str, password: str) -> bool:
-    hash_name, iters, salt_hex, dk_hex = stored.split("$")
-    salt = binascii.unhexlify(salt_hex)
-    expected = binascii.unhexlify(dk_hex)
-
-    dk = hashlib.pbkdf2_hmac(
-        hash_name,
-        password.encode("utf-8"),
-        salt,
-        int(iters)
-    )
-
-    return hmac.compare_digest(dk, expected)
+from sources.hashing import hash_password, verify_password
 
 
 # -----------------------------
 # DATABASE
 # -----------------------------
+
 def connect():
     return sqlite3.connect(DB_PATH)
 
@@ -112,13 +65,29 @@ def create():
 # -----------------------------
 # QUERIES
 # -----------------------------
+
 def check_login(name: str, password: str) -> bool:
     user = get_user(name)
+
     if not user:
         return False
 
-    stored_hash = user[2]
+    stored_hash = user["password"]
+
     return verify_password(stored_hash, password)
+
+
+def fetch_all():
+    with connect() as con:
+        cur = con.cursor()
+
+        _ = cur.execute("SELECT id, name, price, quantity FROM goods")
+        rows = cur.fetchall()
+
+    return [
+        {"id": r[0], "name": r[1], "price": r[2], "quantity": r[3]}
+        for r in rows
+    ]
 
 
 def get_user(name: str):
@@ -126,28 +95,23 @@ def get_user(name: str):
         cur = con.cursor()
         _ = cur.execute("""SELECT id, name, password, role
         FROM users WHERE name = ?""", (name,))
-        return cur.fetchone()
+        row = cur.fetchone()
 
+    if row is None:
+        return None
 
-def load():
-    with connect() as con:
-        cur = con.cursor()
-        _ = cur.execute("SELECT id, name, price, quantity FROM goods")
-        rows = cur.fetchall()
-    return [
-        {"id": r[0], "name": r[1], "price": r[2], "quantity": r[3]}
-        for r in rows
-    ]
+    return {"id": row[0], "name": row[1], "password": row[2], "role": row[3]}
 
 
 def reduce_quantity(cart_list):
     with connect() as con:
         cur = con.cursor()
+
         for item in cart_list:
             # Ensure quantity will not go negative
             _ = cur.execute("""
                 UPDATE goods
-                SET quantity = MAX(quantity - ?, 0)
+                SET quantity = quantity - ?
                 WHERE id = ?
             """, (item["quantity"], item["id"]))
 
@@ -160,6 +124,8 @@ def retrieve_info(id: int):
             (id,),
         )
         r = cur.fetchone()
+
     if r is None:
         return None
+
     return {"id": r[0], "name": r[1], "price": r[2], "quantity": r[3]}

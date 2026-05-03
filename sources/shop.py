@@ -4,22 +4,22 @@ from PySide6.QtWidgets import (
     QMessageBox, QPushButton, QWidget
 )
 
+from sources.cart_manager import CartManager
 from sources.database import retrieve_info
-from sources.utils import add_to_cart, play_sfx, set_image 
+from sources.utils import add_to_cart, play_sfx, set_image
 
 
 class ShopWindow(QMainWindow):
-    def __init__(self, parent=None, cart_list=None, database=None,
+    def __init__(self, parent=None, database=None,
     *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.setWindowTitle("Loja de carrinhos")
         self.setGeometry(250, 50, 900, 700)
 
-        self.cart_list = cart_list or []
         self.cart_window = None
         self.database = database
 
-        play_sfx(self,"shop")
+        play_sfx("shop")
 
         widget = QWidget()
         layout = QGridLayout(widget)
@@ -72,32 +72,8 @@ class ShopWindow(QMainWindow):
 
 
     def close_button_click(self):
-        play_sfx(self, "close")
+        play_sfx("close")
         QTimer.singleShot(450, self.close)
-
-
-    def increase_quantity(self, index):
-        if not self.cart_list:
-            return
-        car_id = self.cart_list[index]['id']
-        info = retrieve_info(car_id)
-        if info is None:
-            play_sfx(self, "warning")
-            _ = QMessageBox(QMessageBox.Icon.Warning,
-            "Erro", "Não foi possível obter informações do produto.",
-            QMessageBox.StandardButton.Ok, self).exec_()
-            return
-        quantity = info["quantity"]
-        if self.cart_list[index]["quantity"] + 1 > quantity:
-            play_sfx(self, "warning")
-            _ = QMessageBox(QMessageBox.Icon.Warning,
-            "Limite atingido", "Atingiu o limite do carrinho.",
-            QMessageBox.StandardButton.Ok, self).exec_()
-            return
-        self.cart_list[index]["quantity"] += 1
-        if self.cart_window is not None:
-            self.cart_window.update_cart_display()
-            self.cart_window.update_total_label()
 
 
     def _on_cart_closed(self):
@@ -106,24 +82,28 @@ class ShopWindow(QMainWindow):
 
 
     def open_cart_window(self):
-        if not self.cart_list:
-            play_sfx(self, "warning")
+        cart = CartManager().get()
+
+        if not cart:
+            play_sfx("warning")
             _ = QMessageBox(QMessageBox.Icon.Warning,
             "Carrinho vazio",
             ("O carrinho está vazio. Por favor, selecione pelo menos"
             " um carrinho."),
             QMessageBox.StandardButton.Ok, self).exec_()
             return
+
         if self.cart_window is None:
             from sources.cart import CartWindow
-            self.cart_window = CartWindow(self, self.cart_list,
-            self.database)
+            self.cart_window = CartWindow(self, self.database)
             self.cart_window.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
             _ = self.cart_window.destroyed.connect(self._on_cart_closed)
+
         else:
             self.cart_window.update_cart_display()
+
         self.cart_window.update_cart_display()
-        play_sfx(self, "click")
+        play_sfx("click")
         self.cart_window.show()
         self.cart_window.raise_()
         self.cart_window.activateWindow()
@@ -138,6 +118,7 @@ class ShopWindow(QMainWindow):
 
         for car_id, label in car_ids.items():
             info = retrieve_info(car_id)
+
             if info is None:
                 label.setText("Erro ao carregar informações.")
                 continue

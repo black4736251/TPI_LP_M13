@@ -1,6 +1,10 @@
 import os
 import sys
 
+# -----------------------------
+# Directories and paths
+# -----------------------------
+
 def base_dir():
     if getattr(sys, "frozen", False): # Avoids using the /tmp folder on Linux distributions
         # Binary path that user executed (./builds/main.bin)
@@ -15,3 +19,11 @@ DB_PATH = os.path.join(BASE_DIR, "databases", "database.db")
 IMAGES_PATH = os.path.join(BASE_DIR, "images", "program")
 REPORTS_PATH = os.path.join(BASE_DIR, "reports", "sales.csv")
 SOUNDS_PATH = os.path.join(BASE_DIR, "sounds")
+
+# -----------------------------
+# Hashing
+# -----------------------------
+
+HASH_NAME = "sha256"
+ITERATIONS = 200_000
+SALT_SIZE = 16 # bytes

@@ -13,6 +13,7 @@ class SoundManager:
         # Make basedpyright happy
         if not hasattr(self, "player"):
             self.player = None
+
         if not hasattr(self, "audio_out"):
             self.audio_out = None
 
@@ -32,5 +33,6 @@ class SoundManager:
     def play(self, path: str):
         if self.player is None:
             return
+
         self.player.setSource(QUrl.fromLocalFile(path))
         self.player.play()

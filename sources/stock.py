@@ -5,22 +5,21 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from sources.database import load, retrieve_info
+from sources.database import fetch_all, retrieve_info
 from sources.utils import open_purchase_history, play_sfx 
 
 
 class StockWindow(QMainWindow):
-    def __init__(self, parent=None, cart_list=None, database=None,
+    def __init__(self, parent=None, database=None,
     *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.setWindowTitle("Manipular quantidades")
         self.setGeometry(250, 50, 900, 700)
 
-        self.cart_list = cart_list
         self.cart_window = None
         self.database = database or []
 
-        play_sfx(self, "stock")
+        play_sfx("stock")
 
         widget1 = QWidget()
         layout1 = QGridLayout(widget1)
@@ -46,54 +45,64 @@ class StockWindow(QMainWindow):
         while layout.count():
             item = layout.takeAt(0)
             widget = item.widget()
+
             if widget is not None:
                 widget.deleteLater()
 
 
     def close_window(self):
-        play_sfx(self, "close")
+        play_sfx("close")
         _ = self.close()
 
 
     def decrease_quantity(self, item_id):
         dec = self.key_add_sub_amount()
         info = retrieve_info(item_id)
+
         if info is None:
-            play_sfx(self, "warning")
+            play_sfx("warning")
             self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
             return
+
         current = info["quantity"]
+
         if current - dec < 0:
-            play_sfx(self, "warning")
+            play_sfx("warning")
             self._show_message(QMessageBox.Icon.Warning, "Erro", "Não é possível diminuir abaixo de zero.")
             return
+
         new_q = current - dec
         self._set_db_quantity(item_id, new_q)
-        play_sfx(self, "information")
+        play_sfx("information")
         self.update_total_quantities(self.database)
 
 
     def increase_quantity(self, item_id):
         add = self.key_add_sub_amount()
         info = retrieve_info(item_id)
+
         if info is None:
-            play_sfx(self, "warning")
+            play_sfx("warning")
             self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
             return
+
         # current stock from DB/info
         current = info["quantity"]
         new_q = current + add
         self._set_db_quantity(item_id, new_q)
-        play_sfx(self, "information")
+        play_sfx("information")
         self.update_total_quantities(self.database)
 
 
     def key_add_sub_amount(self):
         mods = QApplication.keyboardModifiers()
+
         if mods & Qt.KeyboardModifier.ShiftModifier:
             return 10
+
         if mods & Qt.KeyboardModifier.ControlModifier:
             return 5
+
         return 1
 
 
@@ -103,15 +112,18 @@ class StockWindow(QMainWindow):
 
     def _set_db_quantity(self, item_id: int, new_quantity: int):
         from sources.database import connect
+
         if new_quantity < 0:
             new_quantity = 0
+
         with connect() as con:
             cur = con.cursor()
             _ = cur.execute("UPDATE goods SET quantity = ? WHERE id = ?", (new_quantity, item_id))
+
         # Update in-memory self.database to match DB
-        for it in self.database:
-            if it['id'] == item_id:
-                it['quantity'] = new_quantity
+        for good in self.database:
+            if good['id'] == item_id:
+                good['quantity'] = new_quantity
                 break
 
 
@@ -121,7 +133,7 @@ class StockWindow(QMainWindow):
 
     def update_total_quantities(self, _database=None):
         self.clear_layout(self.layout2)
-        self.database = load()
+        self.database = fetch_all()
         database = self.database
 
         for row, item in enumerate(database):
@@ -133,6 +145,7 @@ class StockWindow(QMainWindow):
 
             if item['quantity'] == 0:
                 quantity_label = QLabel("Sem quantidade.")
+
             else:
                 quantity_label = QLabel(str(item['quantity']))
                 quantity_label.setAlignment(Qt.AlignmentFlag.AlignCenter)

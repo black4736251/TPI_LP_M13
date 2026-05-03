@@ -5,20 +5,20 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from sources.cart_manager import CartManager
 from sources.database import retrieve_info
 from sources.utils import finalize_purchase, play_sfx
 
 
 class CartWindow(QMainWindow):
-    def __init__(self, parent=None, cart_list=None, database=None,
+    def __init__(self, parent=None, database=None,
                  *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.setWindowTitle("Carrinho de compras")
         self.setGeometry(250, 50, 900, 700)
 
-        assert cart_list is not None, '"cart_list" tem de ser uma lista.'
-        self.cart_list = cart_list
         self.database = database
+        self.cart_window = None
 
         widget1 = QWidget()
         layout1 = QGridLayout(widget1)
@@ -55,30 +55,36 @@ class CartWindow(QMainWindow):
         while layout.count():
             item = layout.takeAt(0)
             widget = item.widget()
+
             if widget is not None:
                 widget.deleteLater()
 
 
     def close_window(self):
-        play_sfx(self, "close")
+        play_sfx("close")
         _ = self.close()
 
 
     def confirm_purchase(self):
-        if not self.cart_list:
-            play_sfx(self, "warning")
+        cart = CartManager().get()
+
+        if not cart:
+            play_sfx("warning")
             _ = QMessageBox(QMessageBox.Icon.Warning,"Carrinho vazio",
             "O carrinho está vazio. Por favor, adicione algum carrinho.",
             QMessageBox.StandardButton.Ok, self).exec_()
             _ = self.close()
             return
-        finalize_purchase(self, self.cart_list)
-        play_sfx(self, "close")
+
+        finalize_purchase(self)
+        play_sfx("close")
         _ = self.close()
 
 
     def decrease_quantity(self, index):
+        cart = CartManager().get()
         mods = QApplication.keyboardModifiers()
+
         if mods & Qt.KeyboardModifier.ShiftModifier:
             dec = 10
         elif mods & Qt.KeyboardModifier.ControlModifier:
@@ -86,45 +92,52 @@ class CartWindow(QMainWindow):
         else:
             dec = 1
 
-        current = self.cart_list[index]["quantity"]
+        current = cart[index]["quantity"]
         new_qty = current - dec
-        if new_qty > 0:
-            self.cart_list[index]["quantity"] = new_qty
-        else:
-            self.cart_list.pop(index)
 
-        play_sfx(self, "information")
+        if new_qty > 0:
+            cart[index]["quantity"] = new_qty
+        else:
+            CartManager().remove_index(index)
+
+        play_sfx("information")
         self.update_cart_display()
         self.update_total_label()
 
 
     def increase_quantity(self, index):
+        cart = CartManager().get()
         mods = QApplication.keyboardModifiers()
+
         if mods & Qt.KeyboardModifier.ShiftModifier:
             add = 10
+
         elif mods & Qt.KeyboardModifier.ControlModifier:
             add = 5
+
         else:
             add = 1
 
-        car_id = self.cart_list[index]['id']
+        car_id = cart[index]['id']
         info = retrieve_info(car_id)
+
         if info is None:
-            play_sfx(self, "warning")
+            play_sfx("warning")
             self._show_message(QMessageBox.Icon.Warning, "Erro", "Não foi possível obter informações do carrinho.")
             return
 
         stock = info['quantity']
-        current = self.cart_list[index]["quantity"]
+        current = cart[index]["quantity"]
+
         if current + add > stock:
             available = stock - current
-            play_sfx(self, "warning")
+            play_sfx("warning")
             self._show_message(QMessageBox.Icon.Warning, "Limite atingido",
-                            f"Não é possível adicionar {add} carrinho(s). Stock disponível: {available}.")
+            f"Não é possível adicionar {add} carrinho(s). Stock disponível: {available}.")
             return
 
-        self.cart_list[index]["quantity"] = current + add
-        play_sfx(self, "information")
+        cart[index]["quantity"] = current + add
+        play_sfx("information")
         self.update_cart_display()
         self.update_total_label()
 
@@ -134,15 +147,16 @@ class CartWindow(QMainWindow):
 
 
     def update_cart_display(self) -> None:
+        cart = CartManager().get()
         self.clear_layout(self.layout2)
 
-        if not self.cart_list:
+        if not cart:
             empty_label = QLabel("Carrinho vazio.")
             empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.layout2.addWidget(empty_label, 0, 0)
             return
 
-        for index, item in enumerate(self.cart_list):
+        for index, item in enumerate(cart):
             name_label = QLabel(item['name'])
             name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -175,7 +189,8 @@ class CartWindow(QMainWindow):
 
 
     def update_total_label(self):
+        cart = CartManager().get()
         result = sum(int(item['quantity']) *
-        float(item['price'])
-        for item in self.cart_list)
+        float(item['price']) for item in cart)
+
         self.total_label.setText(f"Total: {result:.2f}€")
