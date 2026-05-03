@@ -8,7 +8,7 @@ from sources.hashing import hash_password, verify_password
 
 
 # -----------------------------
-# DATABASE
+# Database
 # -----------------------------
 
 def connect():
@@ -63,7 +63,7 @@ def create():
 
 
 # -----------------------------
-# QUERIES
+# Queries
 # -----------------------------
 
 def check_login(name: str, password: str) -> bool:
