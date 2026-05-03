@@ -2,9 +2,9 @@
 
 * Aplicação desenvolvida em Python 3.13 + PySide6, compilada com Nuitka, utilizando SQLite para persistência e PBKDF2 para hashing seguro de passwords.
 * Permite comprar, vender e manipular a quantidade de carrinhos. <br />
-* Com uma base de dados que armazena as credenciais encriptadas dos utilizadores e do administrador. <br />
+* Possui uma base de dados reponsável por armazenar as credenciais hasheadas do utilizador e do administrador. <br />
 * Também armazena as informações dos carrinhos. <br />
-* Cria um relatório de vendas que pode ser visualizado fácilmente. <br />
+* Cria um relatório de vendas em CSV que pode ser visualizado fácilmente. <br />
 * Contém efeitos sonoros e imagens dando ao utilizador uma experiência aconchegante.
 
 ## Como executar ⚙️
